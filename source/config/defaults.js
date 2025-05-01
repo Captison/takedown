@@ -7,40 +7,37 @@ export default
     {
         autolink: '<a href="{url}">{value}</a>',
         code: '<code>{value}</code>',
-        codeblock: '{td.licnl}<pre><code>{value}</code></pre>\n',
-        divide: '{td.licnl}<hr />\n',
+        codeblock: '<pre><code>{value}</code></pre>\n',
+        divide: '<hr />\n',
         email: '<a href="mailto:{email}">{value}</a>',
         emphasis: '<em>{value}</em>',
-        fenceblock: v => 
-        { 
-            v.class = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-            return `{td.licnl}<pre><code{? class="language-{class}"?}>{value}</code></pre>\n`;
+        fenceblock: v =>
+        {
+            v.lang = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+            return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
         },
+        header: '<h{level}>{value}</h{level}>\n',
         html: '{value}',
-        htmlblock: '{td.licnl}{value}',
-        header: '{td.licnl}<h{level}>{value}</h{level}>\n',
+        htmlblock: '{value}',
         image: v =>
         {
             v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-            return `<img src="{url}" alt="{alt}"{? title="{title}"?} />`;
+            return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
         },
         linebreak: '<br />\n',
-        link: '<a href="{url}"{? title="{title}"?}>{value}</a>',
-        listitem: `<li>{value}</li>\n`,
-        olist: v =>
+        link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
+        listitem: v =>
         {
-            v.first = v.start === 1 ? null : v.start;
-            return '{td.licnl}<ol{? start="{first}"?}>\n{value}</ol>\n';
+            v.nl = v.child.count && (!v.tight || v.child.first !== 'paragraph') ? '\n' : '';
+            return '<li>{nl}{value}</li>\n';
         },
-        paragraph: ({ parent: p, ...v }) => 
-        {
-            return p.tight ? v.value + (v.nindex < p.ncount - 1 ? '\n' : '') : '{td.licnl}<p>{value}</p>\n';
-        },
+        olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
+        paragraph: ({ parent: p, last }) => p.tight ? '{value}' + (last ? '' : '\n') : '<p>{value}</p>\n',
         root: '{value}',
-        quotation: '{td.licnl}<blockquote>\n{value}</blockquote>\n',
-        setext: '{td.licnl}<h{level}>{value}</h{level}>\n',
+        quotation: '<blockquote>\n{value}</blockquote>\n',
+        setext: '<h{level}>{value}</h{level}>\n',
         strong: '<strong>{value}</strong>',
-        ulist: '{td.licnl}<ul>\n{value}</ul>\n'
+        ulist: '<ul>\n{value}</ul>\n'
     },
     
     entities,
@@ -69,13 +66,13 @@ export default
         image:
         {
             value: [ 'common' ],
-            url: [ 'uri' ],
+            href: [ 'uri' ],
             title: [ 'common' ]
         },
         link:
         {
             value: [ 'common' ],
-            url: [ 'uri' ],
+            href: [ 'uri' ],
             title: [ 'common' ]
         },
         paragraph: [ 'trimAroundNewline', 'common' ],
@@ -86,7 +83,7 @@ export default
 
     interpolate:
     {
-        vars: /\{([\w.]+)\}/g,
+        vars: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
         sections: /\{\?(((?!\{\?).)+?)\?\}/g
     },
 
@@ -106,13 +103,5 @@ export default
 
     useFmConfig: false,
 
-    vars:
-    {
-        td:
-        {
-            licnl: v => v.parent.name === 'listitem' && v.nindex === 0 ? '\n' : '', 
-        },
-
-        url: ''
-    }
+    vars: {}
 }

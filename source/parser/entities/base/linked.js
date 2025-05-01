@@ -179,7 +179,7 @@ export default ({ fn, ...s }) =>
 
         data.name = name;
         // unescape and remove enclosures
-        if (url) data.url = url.replace(state.urlTrimRe, '$1');
+        if (url) data.href = url.replace(state.urlTrimRe, '$1');
         if (title) data.title = title.replace(state.titleTrimRe, '$1');
 
         return data;

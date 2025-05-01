@@ -21,17 +21,21 @@ export default function (config)
             rest = delouse(rest);
 
             rest.parent = parent;
-            rest.ntype = model.type;
-            rest.nindex = index || 0;
-            rest.ncount = 0;
+            rest.first = parent ? index === 0 : void 0;
+            rest.last = parent ? index === parent.child.count - 1 : void 0;
 
             // we need to finalize chunks if provided
             if (((rest.value ?? null) === null) && (chunks || chunks === '')) 
             {
                 let array = [], list = [].concat(chunks);
 
-                rest.ncount = list.length;
-                
+                rest.child =
+                {
+                    count: list.length,
+                    first: list.length ? list[0].name || 'text' : void 0,
+                    last: list.length ? list[list.length - 1].name || 'text' : void 0 
+                };
+
                 list.forEach((chunk, index) => 
                 {
                     let render = chunk.agent ? finalize(chunk, { ...rest }, index) : 
@@ -68,7 +72,7 @@ export default function (config)
         let reps = { ...vars, ...data };
         let solve = value => typeof value === 'function' ? value(data) : value
 
-        let doVars = str => str.replace(insert, (match, name) => solve(op.get(reps, name)) ?? match)
+        let doVars = str => str.replace(insert, (match, name, def) => solve(op.get(reps, name)) ?? def ?? match)
         let doSects = str => str.replace(sects, (...args) => check(args[1], doVars(args[1])))
 
         while (sects.test(str)) { str = doSects(str); }

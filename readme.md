@@ -89,11 +89,7 @@ convert:
     /*
         value - code block source
     */
-    codeblock: v =>
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<pre><code>{value}</code></pre>\n`;
-    },
+    codeblock: '<pre><code>{value}</code></pre>\n',
     /*
         marks - symbols used for thematic break
     */
@@ -112,33 +108,29 @@ convert:
         info - fence block info-string
         fence - opening ticks
     */
-    fenceblock: v => 
-    { 
-        v.class = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-        return `<pre><code{? class="language-{class}"?}>{value}</code></pre>\n`;
+    fenceblock: v =>
+    {
+        v.lang = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+        return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
     },
     /*
         value - header tag content
         level - header level (1-6)
     */
-    header: v =>
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<h{level}>{value}</h{level}>\n`;
-    },
+    header: '<h{level}>{value}</h{level}>\n',
     /*
         value - inline html content
     */
     html: '{value}',
     /*
         value - image description
-        url - encoded image URL
+        href - encoded image URL
         title - image description
     */
     image: v =>
     {
         v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-        return `<img src="{url}" alt="{alt}"{? title="{title}"?} />`;
+        return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
     },
     /*
         nada.
@@ -146,38 +138,33 @@ convert:
     linebreak: '<br />',
     /*
         value - link text
-        url - encoded link URL
+        href - encoded link URL
         title - link description
     */
-    link: '<a href="{url}"{? title="{title}"?}>{value}</a>',
+    link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
     /*
         value - list item content
         tight - should paragraphs be suppressed?
     */
-    listitem: v => `<li>${v.loose?'\n':''}{value}</li>\n`,
+    listitem: v =>
+    {
+        v.nl = v.child.count && (!v.tight || v.child.first !== 'paragraph') ? '\n' : '';
+        return '<li>{nl}{value}</li>\n';
+    },
     /*
         value - list content
         start - starting index
-        type - type of list (`1`, `A`, or `a`)
         tight - should paragraphs be suppressed?
     */
-    olist: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<ol{? start="{start}"?}{? type="{type}"?}>\n{value}</ol>\n`;
-    },
+    olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
     /*
         value - paragraph content
     */
-    paragraph: '<p>{value}</p>\n',
+    paragraph: ({ parent: p, last }) => p.tight ? '{value}' + (last ? '' : '\n') : '<p>{value}</p>\n',
     /*
         value - block quote content
     */
-    quotation: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<blockquote>\n{value}</blockquote>\n`;
-    },
+    quotation: '<blockquote>\n{value}</blockquote>\n',
     /*
         value - entire document output
     */
@@ -195,11 +182,7 @@ convert:
         value - list content
         tight - should paragraphs be suppressed?
     */
-    ulist: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<ul>\n{value}</ul>\n`
-    },
+    ulist: '<ul>\n{value}</ul>\n'
 }
 ```
 
@@ -214,6 +197,8 @@ Note that the below details also apply to a string returned from a converter fun
 
 **`variables`** \
 To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the named variable is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
+
+Use the `{name??value}` syntax where `value` is the literal value to use when `name` is nullish.
 
 **`segments`** \
 To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  More directly, if variable replacement within a segment string results in the exact same string, the entire segment will be omitted.  
@@ -283,39 +268,15 @@ The names here should include word-only (letters, numbers, and underscores) char
 
 To make a "dynamic" variable, use a function.  Functions will be called with the current entity conversion data object with the return value used as the variable value.
 
-> NOTE: Dynamic variables are not pre-loadedd for convert functions.  
-> The convert function will have to get the value manually.
-> ```js
-  convert:
-  {
-      divide: (data, vars)
-      {
-          let klass = vars.label(data);
-          return `<hr class="${klass}" />\n`
-      }
-  },
-  vars:
-  {
-      label: data => data.name == 'divide' ? 'divider' : 'other'
-  }
-> ```
+> NOTE: Function variables are not pre-called for convert functions.  Convert functions will need to get the value manually.
 
 Remember that these will be overwritten by variables used directly by a given `convert` setting.
 
 There are no defaults for this, but here's a shameless example.
 
 ```js
-{
-    vars:
-    {
-        something: 'Takedown rules'
-    },
-
-    convert:
-    {
-        emphasis: '<em>I gotta tell you {something}!</em>'
-    }
-}
+td.config.convert = { emphasis: '<em>I gotta tell you {something}!</em>' };
+td.config.vars = { something: 'Takedown rules' };
 ```
 
 
@@ -323,7 +284,9 @@ There are no defaults for this, but here's a shameless example.
 
 ### CommonMark
 
-While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.commonmark.org) spec compliant as per version **0.31.2**.  It is pure vanilla and does not add anything to the spec, either (except front-matter, I guess).  This is true for the parsing of markdown as well as for the HTML conversion as long as no config changes that affect these are made.
+While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.commonmark.org) spec compliant as per version **0.31.2**.  It is pure vanilla and also does not add anything to the spec (except front-matter, I guess).  
+
+There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the [test-cases](https://spec.commonmark.org/0.31.2/spec.json), but these have no effect on the semantic correctness of the html output.
 
 ### HTML
 
@@ -342,7 +305,7 @@ convert:
 
 Takedown mostly runs off of its config settings as it is intended to operate as declaratively as possible.
 
-As I'm sure you will discover, there are options in the config that are not documented here.  These options may be changed completely or removed entirely in the future.  Please note that anything undocumented here is subject to breaking change for **any** version revision level.
+As I'm sure you will discover, there are options in the config that are not documented here.  These options may be changed completely or removed entirely in the future.  Please note that anything not documented here is subject to breaking change at **any** semver level.
 
 
 ## Final Notes
