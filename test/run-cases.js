@@ -1,37 +1,71 @@
 import chalk from 'chalk'
-import cases from './test-cases'
 import takedown from '../source'
 
 
-let runner = list =>
+let { stdout: so } = process;
+
+export default (cases, list) =>
 {
+    let include = tc =>
+    {
+        if (!list?.length) return true;
+        if (list.includes(String(tc.example))) return true;
+        if (list.includes(tc.section)) return true;
+        return false;
+    }
+
     let td = takedown({ fmCapture: null });
 
-    console.log('Running test cases...');
-    let count = { Total: 0 }, passed = { Total: 0 };
-
-    cases.forEach(testcase => 
+    let test = tc =>
     {
-        let { markdown, html, example, section } = testcase;
+        let { markdown, html, example, section } = tc;
 
-        if (list.length && !(list.includes(String(example)) || list.includes(section))) return;
-
-        console.log('::::::::::::::::::::::::::::::::::::::::::::::::::');
+        so.write(`Running test case ${example} ${section}... `);
+        
+        let beg = performance.now();
         let result = td.parse(markdown);
+        let end = performance.now();
+        
+        let time = Math.round((end - beg) * 1000) / 1000;
+        let status = html === result ? chalk.greenBright('PASS') : chalk.redBright('FAIL');
+        so.write(`${status} (${time}ms)\n`);
+
+        return { ...tc, result };
+    }
+
+    let count = {}, passed = {};
+
+    let record = tc =>
+    {
+        let { html, result, section } = tc;
+
+        count.Total ??= 0;
+        passed.Total ??= 0;
+
+        count[section] ??= 0;
+        passed[section] ??= 0;
 
         count.Total ++;
-        count[section] = (count[section] || 0) + 1;
-        passed[section] ??= 0;
-        
+        count[section] ++;
+
         if (result === html)
         {
             passed.Total ++;
             passed[section] ++;
-
-            console.log(`${section} example ${example} passed!\n`);
         }
-        else
+
+        return tc;
+    }
+
+    let data = [];
+
+    let report = tc =>
+    {
+        let { markdown, html, result, example, section } = tc;
+
+        if (result !== html)
         {
+            console.log('::::::::::::::::::::::::::::::::::::::::::::::::::');
             console.log(`${section} example ${example} failed.\n`);
             console.log(`Markdown (${markdown.length} chars):`);
             console.log(`${markdown.replace(/\t/g, '⤇').replace(/ /g, '·').replace(/\n/g, '⏎$&')}`);
@@ -39,8 +73,19 @@ let runner = list =>
             console.log(`${html}`);
             console.log(`Received (${result.length} chars):`);
             console.log(`${result}`);
+            console.log('::::::::::::::::::::::::::::::::::::::::::::::::::');
         }
-    });
+    }
+
+    console.log('\nRunning test cases...');
+    let beg = performance.now();
+    data = cases.reduce((a, tc) => (include(tc) && a.push(record(test(tc))), a), []);        
+    let end = performance.now();
+    let time = Math.round(end - beg) / 1000;        
+    console.log(chalk.whiteBright(`\n${count.Total} test cases finished in ${time} seconds`));
+
+    console.log('\nGenerating failed test case reports...');
+    data.forEach(report);
 
     let display = (key, name = key) =>
     {
@@ -70,9 +115,3 @@ let runner = list =>
     console.log(chalk.whiteBright(display('Total', 'TOTAL')));
     console.log();
 }
-
-// let indexes = process.argv.slice(2), tests = cases;
-
-// if (indexes.length) tests = indexes.reduce((arr, idx) => [ ...arr, cases[idx - 1] ], [])
-
-runner(process.argv.slice(2));
