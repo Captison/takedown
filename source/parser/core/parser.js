@@ -1,9 +1,8 @@
-import createAgent from './agency/agent'
 import iterate from './iterate'
 import streamer from './streamer'
 
 
-export default function ({ madoe })
+export default function ({ agentPool, madoe })
 {   
     let inlineParser = ({ name, nestable }) =>
     {
@@ -13,10 +12,12 @@ export default function ({ madoe })
 
     let context = { document: {}, inlineParser, madoe };
 
-    // TODO: Pool agents instead of creating new ones?
     let agenter = context => 
     {
-        let agent = (...args) => createAgent()({ ...context, agent }, ...args);
+        let agent = (...args) => agentPool.get().initialize({ ...context, agent }, ...args);
+        
+        agent.repool = agentPool.renew;
+
         return agent;
     }
 

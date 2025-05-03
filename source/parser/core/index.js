@@ -1,4 +1,6 @@
+import createAgent from './agency/agent'
 import res from '../lib/action-response'
+import respool from '../lib/resource-pool'
 import detabber from './detabber'
 import entitor from './entitor'
 import finalizer from './finalizer'
@@ -10,10 +12,10 @@ let insecureRe = /&#x?0+;/gi;
 export default function (config)
 {
     let detab = detabber(config);
-    let madoe = entitor(config);
     let finalize = finalizer(config);
+    let agentPool = respool(createAgent);
 
-    let root = madoe(
+    let root = entitor(
     { 
         name: 'root', 
         type: 'block', 
@@ -24,7 +26,7 @@ export default function (config)
 
     return source =>
     {
-        let parse = parser({ madoe });
+        let parse = parser({ agentPool, madoe: entitor });
 
         let content = source;
         // replace insecure character

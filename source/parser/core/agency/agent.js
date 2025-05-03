@@ -8,32 +8,32 @@ let counter = 100;
 // let spc = (str, ct) => str + ' '.repeat(ct - str.length)
 // let actionLog = (model, parent, action, chunk) =>
 // {
+//     let parentId = parent ? `${parent.model.type}-${parent.model.name}:${(parent.id * 17).toString(32)}` : '';
 //     let chunkId = chunk && `${chunk.id}:${chunk.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⤇')}`;
-//     console.log('๏', spc(parent?.id || '', 21), '๏', spc(model.id, 21), '๏', spc(String(action), 8), '๏', chunkId);
+//     console.log('๏', spc(parentId, 21), '๏', spc(model.id, 21), '๏', spc(String(action), 8), '๏', chunkId);
 // }
 
 export default function ()
 {
     let self = { agent: true }, parent, model;
     // parsing context elements
-    let agent, current, document, madoe, stream, streamFn;
+    let agent, current, madoe, stream, streamFn;
     // entity state tracking
     let state, backstate;
-    // entities by type sorted by order; entity index tracker
-    let mdents, nendex;
+    // entity index tracker
+    let nendex;
     // agent entity close handler
     let close = closer(self);
 
 
-    let init = (context, entity, branch) =>
+    self.initialize = (context, entity, branch) =>
     {
-        ({ agent, current, document, madoe, stream, streamFn } = context);
+        ({ agent, current, madoe, stream, streamFn } = context);
         
-        let ent = madoe(entity);
+        let ent = madoe.withNesters(madoe(entity));
 
         state = { ...ent.state };
         backstate = [ { ...state }, { ...state } ];
-        mdents = madoe.filterSort(ent.type, ent.nestable); 
         nendex = 0;
         parent = branch;
 
@@ -42,13 +42,10 @@ export default function ()
             ...ent,
             
             agent: true,
-            id: `${ent.type}-${ent.name}:${(counter++ * 17).toString(32)}`,
+            id: counter++,
             chunks: [],
-            current,
-            document,
             getPruning: pruning(self),
             opens,
-            stream: streamFn,
             // starting/ending indexes in source
             index: -1, endex: -1,
 
@@ -57,6 +54,8 @@ export default function ()
 
             get chunk() { return streamFn.slice(model.index, model.endex); },
             get content() { return model.chunks.join(''); },
+            get current() { return current; },
+            get document() { return context.document; },
             get inliner() 
             { 
                 if (model.type === 'block' && model.nestable?.length) 
@@ -65,6 +64,7 @@ export default function ()
                 return void 0;
             },
             get state() { return state; },
+            get stream() { return streamFn; },
         }
 
         self.parent = parent; self.model = model;
@@ -90,8 +90,20 @@ export default function ()
 
         This should never be called from root entity.
     */
-    let opens = (chunk, ...names) => names.findIndex(name => agent(name, parent).open(chunk)) >= 0 
-    // let opens = (chunk, ...names) => names.findIndex(name => agent(name, self).open(chunk)) >= 0 
+    let opens = (chunk, ...names) => 
+    {
+        let index = names.findIndex(name => 
+        {
+            let candidate = agent(name, parent);
+            let canOpen = candidate.open(chunk);
+
+            agent.repool(candidate);
+
+            return canOpen;
+        });
+
+        return index >= 0; 
+    }
 
     /*
         Advance to next entity, reset state, and rewind iterator.
@@ -102,6 +114,8 @@ export default function ()
     let abort = (aborted, restate) => 
     {
         let { model } = aborted;
+        // repool aborted agent
+        agent.repool(aborted);
 
         let retry = typeof restate === 'object';
         // advance entity search index (skip `agent`)
@@ -110,8 +124,16 @@ export default function ()
         state = { ...backstate[1] };
         // move streamer back to index of first chunk in `agent`
         stream.goto(model.index);
-        // retry parsing with modified version of same entity
-        return retry ? agent(madoe.custom(model.name, { state: restate }), self) : self;
+        
+        if (retry)
+        {
+            let { name, nesters } = model;
+            // retry parsing with modified version of same entity
+            let modded = madoe.custom(name, { state: restate, nesters });
+            return agent(modded, self);
+        }
+
+        return self;
     }
 
     /*
@@ -123,6 +145,7 @@ export default function ()
         {
             model.chunks.push(chunk.model);
             model.endex = chunk.model.endex; 
+            // agent.repool(chunk);
         }
         else
         {
@@ -143,9 +166,9 @@ export default function ()
     */
     let spawn = chunk =>
     {
-        for (;nendex<mdents.length;nendex++)
+        for (;nendex<model.nesters.length;nendex++)
         {
-            let ent = mdents[nendex];
+            let ent = model.nesters[nendex];
             // when parentless make sure this entity can be top-level
             if (parent || !ent.uproot) 
             {
@@ -153,6 +176,8 @@ export default function ()
                 let response = candidate.open(chunk);
                 // response can be an action here
                 if (response) return candidate.next(chunk, response);
+                // return agent object to pool
+                agent.repool(candidate);
             }
         }
     }
@@ -215,5 +240,5 @@ export default function ()
         throw new TakedownError(`"${action}" is not a valid entity action response`);
     }
 
-    return init;
+    return self;
 }

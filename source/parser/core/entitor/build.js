@@ -1,11 +1,12 @@
 import res from '../../lib/action-response'
 import re from '../../lib/re'
+import mixer from './mixer'
 
 
 /*
     Assembles a static markdown entity definition.
 */
-export default function (spec)
+function build(spec)
 {
     let { order, priority, regex, state, ...entity } = spec;
 
@@ -122,6 +123,13 @@ export default function (spec)
 
     return entity;
 }
+
+
+export default function (...mixes) 
+{ 
+    return build(mixer(...mixes)); 
+}
+
 
 /*
     Caches the result of a chunk handling operation to entity state.

@@ -1,68 +1,47 @@
-import { entity } from '../../../config/structure'
-import restrict from '../../../config/restrict'
-import reparts from '../../lib/reparts'
 import build from './build'
-import mixer from './mixer'
+import { inlineDelimiters } from './entity-meta'
 
 
-/**
-    Builds out entity definitions with defaults and conveniences.
-*/
-export default function (config)
+let cache = {};
+let proxie = name =>
 {
-    let { entities } = config;
+    // configured entity is requested (cached types)
+    if (typeof name === 'string') return cache[name] ??= build({ name }, name);
+    // assume already built entity
+    if (name?.entity) return name;
+    // assemble a custom entity
+    return build(name);
+}
 
-    let mixin = mixer(entities, reparts);
+proxie.custom = build;
 
-    let cache = {};
-    let custom = (...mixes) => build(mixin(...mixes))
-    
-    let proxie = name =>
+let orderSort = (a, b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0
+
+/*
+    Filter and sort nestable types for entity.
+
+    These inter-entity references must be separately (and somewhat lazily) 
+    resolved as they depend on each other.
+*/
+proxie.withNesters = entity =>
+{
+    if (!entity.nesters)
     {
-        // configured entity is requested (cached types)
-        if (typeof name === 'string') return cache[name] ??= custom({ name }, entities[name]);
-        // return already built entity
-        if (name?.entity) return name;
-        // assemble a custom entity
-        return custom(name);
-    }
+        let { type, nestable = [] } = entity;
 
-    proxie.custom = custom;
-    // filter by type and sort by order
-    proxie.filterSort = (type, list) =>
-    {
         let reducer = (arr, name) =>
         {
             let ent = proxie(name);
-            if (type === ent.type) arr.push(ent);
-            return arr;
+            return type === ent.type ? [ ...arr, ent ] : arr;
         }
-
-        return (list || []).reduce(reducer, []).sort(orderSort);
-    }
     
+        entity.nesters = nestable.reduce(reducer, []).sort(orderSort);    
+    }
 
-    let dels = [];
-    Object.keys(entities).forEach(name =>
-    {
-        let ent = mixin(name);
-        // validate entity config
-        restrict({ entities: { [name]: entity } }).entities = { [name]: ent };
-
-        if (ent.type === 'inline')
-        {
-            let { delims = [], regex: { open } } = ent;
-            // add open regex to delimiters (if existing)
-            if (open) delims = [ open, ...delims ];
-            
-            delims.forEach(del => !dels.includes(del) && dels.push(del));
-        }
-    });
-
-    proxie.block = [ /.*?\n/g ];
-    proxie.inline = dels;
-
-    return proxie;
+    return entity;
 }
 
-let orderSort = (a, b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0
+proxie.block = [ /.*?\n/g ];
+proxie.inline = inlineDelimiters;
+
+export default proxie;

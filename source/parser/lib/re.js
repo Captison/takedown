@@ -23,7 +23,7 @@ let make = (def, flags) =>
 }
 
 // get a set of unique regex flags from `a` and `b`
-let mergeflags = (a, b) => a && b ? Array.from(new Set((a + b).split(''))).join('') : a || b
+let mergeflags = (a, b) => a && b ? [ ... new Set((a + b).split('')) ].join('') : a || b
 
 let esc = /[-\[\]{}()*+!<=>:?.\/\\^$|#\s,"]/g;
 make.esc = string => string.replace(esc, '\\$&')
