@@ -1,13 +1,13 @@
 
 # Takedown
 
-A markdown parser that puts you in control... of everything.
+A markdown parser that gives you control of the output document structure.
 
 
 ## How do I use this?
 
 ```shell
-npm install takedown --save
+> npm install takedown --save
 ```
 
 and then...
@@ -18,24 +18,17 @@ import takedown from 'takedown'
 // create "instance" with configuration
 let td = takedown({ ... });
 
-let markdown = 'Your markdown here!';
+let markdown = 'Your markdown *here*!';
 
 // make some HTML!
 let html = td.parse(markdown);
+// => <p>Your markdown <em>here</em>!</p>
 
 // get front-matter!
 let fm = td.parseMeta(markdown);
 ```
 
 Simple!
-
-> Both `parse` and `parseMeta` functions will throw an exception if the parameter is not a string.
-
-
-## Example
-
-TODO: Put a decent example here!
-
 
 ## How do I configure this?
 
@@ -63,13 +56,13 @@ All of the update methods above have the same effect (i.e., only `config.convert
 
 #### `convert`
 
-Specifies how you would like to have markdown entities converted.  
+Specifies how to have markdown entities converted. 
 
 Each converter can be either a string or a function.
 
-When using a string, brace (`{}`) enclosed insertion variable names will be replaced with data from the markdown entity or configuration variables (see `vars` option).
+Strings can be interpolated using insertion variables and `vars` (as per `Converter String Replacement` section below).
 
-When using a function, an object containing the entity's insertion variables is passed as the first argument.  The second argument is the `vars` object.  The string returned from the function is interpolated as above and then used as the replacement value for the entity.
+Functions will receive insertion variables and `vars` as two separate parameters and the returned string will also be interpolated.
 
 Here are the defaults with insertion variable names explained:
 
@@ -101,6 +94,7 @@ convert:
     email: '<a href="mailto:{email}">{value}</a>',
     /*
         value - emphasis text
+        child - child data
     */
     emphasis: '<em>{value}</em>',
     /*
@@ -116,6 +110,7 @@ convert:
     /*
         value - header tag content
         level - header level (1-6)
+        child - child data
     */
     header: '<h{level}>{value}</h{level}>\n',
     /*
@@ -126,6 +121,7 @@ convert:
         value - image description
         href - encoded image URL
         title - image description
+        child - child data
     */
     image: v =>
     {
@@ -140,11 +136,13 @@ convert:
         value - link text
         href - encoded link URL
         title - link description
+        child - child data
     */
     link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
     /*
         value - list item content
         tight - should paragraphs be suppressed?
+        child - child data
     */
     listitem: v =>
     {
@@ -155,32 +153,40 @@ convert:
         value - list content
         start - starting index
         tight - should paragraphs be suppressed?
+        child - child data
     */
     olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
     /*
         value - paragraph content
+        child - child data
     */
-    paragraph: ({ parent: p, last }) => p.tight ? '{value}' + (last ? '' : '\n') : '<p>{value}</p>\n',
+    paragraph: ({ parent: p, index }) => 
+        p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
     /*
         value - block quote content
+        child - child data
     */
     quotation: '<blockquote>\n{value}</blockquote>\n',
     /*
         value - entire document output
+        child - child data
     */
     root: '{value}',
     /*
         value - setext header tag content
         level - setext header level (1-2)
+        child - child data
     */
     setext: '<h{level}>{value}</h{level}>\n',
     /*
         value - strong emphasis text
+        child - child data
     */
     strong: '<strong>{value}</strong>',
     /*
         value - list content
         tight - should paragraphs be suppressed?
+        child - child data
     */
     ulist: '<ul>\n{value}</ul>\n'
 }
@@ -188,12 +194,19 @@ convert:
 
 **All** of the target document structure is defined in the `convert` settings.  Omit `{value}` from a converter to suppress descendant output.  Set it to to `null` to turn off its output completely.
 
-**`parent`**
-Every converter also has the insertion variable `parent`, which contains the variable data (excluding `value`) from the containing converter. This will be `undefined` for the root converter.
+The `child` insertion variable is available only on parseable entities. It will have
+- `count`: number of child entities (including text nodes)
+- `first`: converter name of the first child (or `text` for text node)
+- `last`: converter name of the last child (or `text` for text node)
+
+A couple of additional variables are also available on every entity (except `root`).
+- `parent`: object with insertion data (excluding `value`) from the parent converter
+- `index`: numeric position of the entity in the parent converter
+
 
 ##### Converter String Replacement
 
-Note that the below details also apply to a string returned from a converter function.
+Remember that the below details also apply to a string returned from a converter function.
 
 **`variables`** \
 To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the named variable is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
@@ -234,7 +247,7 @@ I know, I know... I can hear you YAMLing already.
 Ok, here's a quick way to YAML up your front-matter:
 
 ```shell
-npm install yaml --save
+> npm install yaml --save
 ```
 
 and then...
@@ -270,9 +283,9 @@ To make a "dynamic" variable, use a function.  Functions will be called with the
 
 > NOTE: Function variables are not pre-called for convert functions.  Convert functions will need to get the value manually.
 
-Remember that these will be overwritten by variables used directly by a given `convert` setting.
+Remember that variables directly associated with a given `convert` setting will take precedence over settings here.
 
-There are no defaults for this, but here's a shameless example.
+There are no default `vars`, but here's a shameless example.
 
 ```js
 td.config.convert = { emphasis: '<em>I gotta tell you {something}!</em>' };
@@ -286,7 +299,7 @@ td.config.vars = { something: 'Takedown rules' };
 
 While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.commonmark.org) spec compliant as per version **0.31.2**.  It is pure vanilla and also does not add anything to the spec (except front-matter, I guess).  
 
-There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the [test-cases](https://spec.commonmark.org/0.31.2/spec.json), but these have no effect on the semantic correctness of the html output.
+There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CommonMark test-cases, but these have no effect on the semantic correctness of the html output.
 
 ### HTML
 
@@ -300,6 +313,16 @@ convert:
     root: '<html><head><title>Takedown Document</title></head><body>{value}</body></html>'
 }
 ```
+
+### Test
+
+To run tests, do
+
+```shell
+> npm test
+```
+
+This executes the default parser configuration against the [test-cases](https://spec.commonmark.org/0.31.2/spec.json).
 
 ### Undocumented Stuff
 

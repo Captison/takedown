@@ -21,8 +21,7 @@ export default function (config)
             rest = delouse(rest);
 
             rest.parent = parent;
-            rest.first = parent ? index === 0 : void 0;
-            rest.last = parent ? index === parent.child.count - 1 : void 0;
+            rest.index = index;
 
             // we need to finalize chunks if provided
             if (((rest.value ?? null) === null) && (chunks || chunks === '')) 

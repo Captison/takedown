@@ -32,7 +32,8 @@ export default
             return '<li>{nl}{value}</li>\n';
         },
         olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
-        paragraph: ({ parent: p, last }) => p.tight ? '{value}' + (last ? '' : '\n') : '<p>{value}</p>\n',
+        paragraph: ({ parent: p, index }) => 
+            p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
         root: '{value}',
         quotation: '<blockquote>\n{value}</blockquote>\n',
         setext: '<h{level}>{value}</h{level}>\n',

@@ -20,7 +20,7 @@ export default (cases, list) =>
     {
         let { markdown, html, example, section } = tc;
 
-        so.write(`Running test case ${example} ${section}... `);
+        so.write(`Running test case ${example} ${section} ... `);
         
         let beg = performance.now();
         let result = td.parse(markdown);
