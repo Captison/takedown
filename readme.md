@@ -56,13 +56,11 @@ All of the update methods above have the same effect (i.e., only `config.convert
 
 #### `convert`
 
-Specifies how to have markdown entities converted. 
+Strings and/or functions that specify how to have markdown entities converted. 
 
-Each converter can be either a string or a function.
+A string will be interpolated using insertion variables and `vars` (as per `Converter String Replacement` section below).
 
-Strings can be interpolated using insertion variables and `vars` (as per `Converter String Replacement` section below).
-
-Functions will receive insertion variables and `vars` as two separate parameters and the returned string will also be interpolated.
+A function will receive insertion variables and `vars` as two separate parameters, respectively. The returned string will also be interpolated.
 
 Here are the defaults with insertion variable names explained:
 
@@ -102,9 +100,9 @@ convert:
         info - fence block info-string
         fence - opening ticks
     */
-    fenceblock: v =>
+    fenceblock: e =>
     {
-        v.lang = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+        e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
         return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
     },
     /*
@@ -123,9 +121,9 @@ convert:
         title - image description
         child - child data
     */
-    image: v =>
+    image: e =>
     {
-        v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+        e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
         return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
     },
     /*
@@ -144,9 +142,9 @@ convert:
         tight - should paragraphs be suppressed?
         child - child data
     */
-    listitem: v =>
+    listitem: e =>
     {
-        v.nl = v.child.count && (!v.tight || v.child.first !== 'paragraph') ? '\n' : '';
+        e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
         return '<li>{nl}{value}</li>\n';
     },
     /*
@@ -155,7 +153,7 @@ convert:
         tight - should paragraphs be suppressed?
         child - child data
     */
-    olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
+    olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
     /*
         value - paragraph content
         child - child data
@@ -203,7 +201,6 @@ A couple of additional variables are also available on every entity (except `roo
 - `parent`: object with insertion data (excluding `value`) from the parent converter
 - `index`: numeric position of the entity in the parent converter
 
-
 ##### Converter String Replacement
 
 Remember that the below details also apply to a string returned from a converter function.
@@ -214,9 +211,9 @@ To insert a variable into a converter string, use `{name}`, where `name` is the 
 Use the `{name??value}` syntax where `value` is the literal value to use when `name` is nullish.
 
 **`segments`** \
-To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  More directly, if variable replacement within a segment string results in the exact same string, the entire segment will be omitted.  
+To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
 
-Segments can be nested, but their behavior is not recursive.  Inner segments are processed first, and their results constitute the initial state of outer segments.
+Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
 
 #### `fm`
 
@@ -234,13 +231,13 @@ fm:
 ```
 
 **`capture`** \
-Defines a regular expression used to capture front-matter from a markdown document.   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.  Set to `null` to turn front-matter off completely.
+*Regular expression to capture front-matter.*   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.  Set to `null` to turn front-matter off completely.
 
 **`parser`** \
-Specifies the function that will parse front-matter.
+*Function to parse front-matter.*  Text content from `capture` is passed to this function.
 
 **`useConfig`** \
-When set to `true` Takedown will look for a `takedown` key in a document's front-matter.  The options found there will be merged atop defaults and any manually set options for that document.
+*Boolean to indicate config settings in front-matter.*  A `takedown` key in front-matter is assumed to be additional config options for that document.  These options will be merged atop defaults and any manually set options.
 
 > When `capture` is set to `null`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
 
@@ -271,7 +268,7 @@ Variables to be used in conversion strings or passed to a conversion function.
 
 The names here should include word-only (letters, numbers, and underscores) characters.  You can also use objects here to nest variables and then use dot-notation to access them in string conversion.
 
-To make a "dynamic" variable, use a function.  Functions will be called with the current entity conversion data object with the return value used as the variable value.
+To make a "dynamic" variable, use a function.  Functions will be called with the current entity conversion data object.
 
 > NOTE: Function variables are not pre-called for convert functions.  Convert functions will need to get the value manually.
 
@@ -293,19 +290,6 @@ While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.
 
 There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CommonMark test-cases, but these have no effect on the semantic correctness of the html output.
 
-### HTML
-
-Takedown does not generate complete HTML documents by default as it only concerns itself with generating the markup needed to represent the markdown content provided.  
-
-Config the below or something similar if you need a full HTML document.
-
-```js
-convert:
-{
-    root: '<html><head><title>Takedown Document</title></head><body>{value}</body></html>'
-}
-```
-
 ### Test
 
 To run tests, do
@@ -318,9 +302,9 @@ This executes the default parser configuration against the [test-cases](https://
 
 ### Undocumented Stuff
 
-Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.
+Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
 
-As I'm sure you will discover, there are options in the config that are not documented here.  These options may be changed completely or removed entirely in the future.  Please note that anything not documented here is subject to breaking change at **any** semver level.
+There are many more options in config not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** semver level.
 
 
 ## Final Notes

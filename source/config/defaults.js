@@ -11,27 +11,27 @@ export default
         divide: '<hr />\n',
         email: '<a href="mailto:{email}">{value}</a>',
         emphasis: '<em>{value}</em>',
-        fenceblock: v =>
+        fenceblock: e =>
         {
-            v.lang = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+            e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
             return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
         },
         header: '<h{level}>{value}</h{level}>\n',
         html: '{value}',
         htmlblock: '{value}',
-        image: v =>
+        image: e =>
         {
-            v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+            e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
             return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
         },
         linebreak: '<br />\n',
         link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
-        listitem: v =>
+        listitem: e =>
         {
-            v.nl = v.child.count && (!v.tight || v.child.first !== 'paragraph') ? '\n' : '';
+            e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
             return '<li>{nl}{value}</li>\n';
         },
-        olist: v => `<ol${v.start !== 1 ? ` start="${v.start}"` : ''}>\n{value}</ol>\n`,
+        olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
         paragraph: ({ parent: p, index }) => 
             p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
         root: '{value}',
