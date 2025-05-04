@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 /*
@@ -44,12 +45,12 @@ export default
         rejectOnForcedClose: true
     },
 
-    regex: s =>
-    ({
+    regex:
+    {
         open: [ `${s.sol}> ?`, 's' ],
         prune: `${s.mi}> ?`,
         blank: /^\s*\n/
-    }),
+    },
 
     prune(line, state)
     {

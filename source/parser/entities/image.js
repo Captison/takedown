@@ -4,23 +4,17 @@ import linked from './base/linked'
 /*
     Image inline.
 */
-export default s =>
+export default
 {
-    let inc = linked(s);
+    mixes: [ linked ],
 
-    let entity = { ...inc };
-
-    entity.state =
+    state:
     {
-        ...inc.state,
         name: 'image'
-    }
+    },
 
-    entity.regex =
+    regex:
     {
-        ...inc.regex,
         open: s => `${s.ne}!\\[(?=.*?${s.ne}\\])`
     }
-
-    return entity;
 }

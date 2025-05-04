@@ -1,6 +1,11 @@
 import res from '../lib/action-response'
 import normalize from '../lib/normalize-label'
+import s from '../lib/reparts'
 
+
+let label = `\\[(?<text>${s.ll})\\]:`;
+let url = `(?<url>${s.ld})`;
+let title = `(?<title>${s.lt})`;
 
 /*
     Link reference block.
@@ -12,22 +17,13 @@ export default
     type: 'block',
     order: 20,
 
-    regex: s =>
+    regex:
     {
-        let label = `\\[(?<text>${s.ll})\\]:`;
-        let url = `(?<url>${s.ld})`;
-        let title = `(?<title>${s.lt})`;
-
-        let exprs =
-        {
-            open: [ `${s.mi}${label}${s.swole}(?=[^\\s])${url}${s.swole}(?:(?<=\\s)${title})?${s.sot}*${s.eol}`, 'ys' ],
-            test: `${s.mi}\\[`,
-            blank: s.bl,
-            titleTrim: /^.(.*?).$/s,
-            urlTrim: /^<(.*?)>$/,
-        }
-
-        return exprs;
+        open: [ `${s.mi}${label}${s.swole}(?=[^\\s])${url}${s.swole}(?:(?<=\\s)${title})?${s.sot}*${s.eol}`, 'ys' ],
+        test: `${s.mi}\\[`,
+        blank: s.bl,
+        titleTrim: /^.(.*?).$/s,
+        urlTrim: /^<(.*?)>$/,
     },
 
     open(line, state)

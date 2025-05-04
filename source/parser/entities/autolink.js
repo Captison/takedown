@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 /*
@@ -10,12 +11,12 @@ export default
     order: 10,
     priority: 10,
 
-    regex: s =>
-    ({
+    regex:
+    {
         open: `<${s.ps}`,
         full: `^<(?<uri>${s.ps}[^\\s${s.acc}<>]*)>$`,
         close: `[^\\s${s.acc}<>]*>`
-    }),
+    },
 
     action(part, state)
     {

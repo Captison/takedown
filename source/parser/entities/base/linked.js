@@ -1,12 +1,13 @@
 import res from '../../lib/action-response'
 import normalize from '../../lib/normalize-label'
+import s from '../../lib/reparts'
 
 
 /*
     Base for link and image inlines.
 */
-export default ({ fn, ...s }) =>
-({
+export default
+{
     type: 'inline',
     order: 20,
     priority: 20,
@@ -58,7 +59,7 @@ export default ({ fn, ...s }) =>
 
     regex:
     { 
-        textBal: fn.nest.brack(),
+        textBal: s.fn.nest.brack(),
         linkOpen: `^\\(${s.swole}`,
         refOpen: `^\\[`,
         titleTrim: /^[("'](.*?)['")]$/,
@@ -184,4 +185,4 @@ export default ({ fn, ...s }) =>
 
         return data;
     }
-})
+}

@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 // let raw = [ 'pre', 'script', 'style', 'textarea' ];
@@ -6,22 +7,23 @@ import res from '../lib/action-response'
 /*
     Html block (type 7).
 */
-export default s =>
+export default
 {
-    let entity = { type: 'block', order: 11 };
+    type: 'block', 
+    order: 11,
   
-    entity.state =
+    state:
     {
         rejectOnForcedClose: true
-    }
+    },
 
-    entity.regex =
+    regex:
     {
         open: `${s.sol}(?=<[^\\n]+?>)(?:${s.hot}|${s.hct})${s.sot}*${s.eol}`,
         blank: s.bl
-    }
+    },
 
-    entity.action =
+    action:
     {
         open(line)
         {
@@ -37,9 +39,7 @@ export default s =>
             
             return res.accept(pruned);
         }
-    }
+    },
 
-    entity.compile = content => ({ name: 'htmlblock', chunks: content });
-
-    return entity;
+    compile: content => ({ name: 'htmlblock', chunks: content })
 }
