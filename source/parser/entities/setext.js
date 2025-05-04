@@ -9,17 +9,6 @@ export default
     type: 'block',
     order: 41,
 
-    nestable: 
-    [ 
-        'autolink', 
-        'code', 
-        'emphasis', 
-        'html', 
-        'image',
-        'linebreak', 
-        'link', 
-    ],
-
     state:
     {
         abortOn: [ 'divide', 'header', 'list', 'quotation' ]

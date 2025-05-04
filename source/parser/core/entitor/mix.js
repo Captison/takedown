@@ -1,7 +1,7 @@
 import * as entities from '../../entities'
 
 
-let mixer = (ent, ...mixes) =>
+let mix = (ent, ...mixes) =>
 {
     let spec = ent;
 
@@ -12,10 +12,10 @@ let mixer = (ent, ...mixes) =>
     }
 
     if (spec.mixes) mixes = [ ...spec.mixes, ...mixes ];
-    return mix(spec, mixes.length ? mixer(...mixes) : {});
+    return mixit(spec, mixes.length ? mix(...mixes) : {});
 }
 
-let mix = (main, mixed) =>
+let mixit = (main, mixed) =>
 {
     let { delims, regex, state, ...rest } = main;
 
@@ -31,4 +31,4 @@ let mix = (main, mixed) =>
     return mix;
 }
 
-export default mixer;
+export default mix;

@@ -82,6 +82,37 @@ export default
         strong: [ 'common' ],
     },
 
+    nestable:
+    {
+        emphasis: [ 'autolink', 'code', 'email', 'emphasis', 'image', 'linebreak', 'link' ],
+        header: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'link' ],    
+        image: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'link' ],
+        link: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'link' ],
+        listitem:
+        [ 
+            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
+            'divide', 'email', 'emphasis', 'header', 'html',
+            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'paragraph', 'quotation', 'reference', 'setext'
+        ],
+        paragraph: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'linebreak', 'link' ],
+        quotation:
+        [ 
+            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
+            'divide', 'email', 'emphasis', 'header', 'html',
+            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'paragraph', 'quotation', 'reference', 'setext',
+        ],
+        root:
+        [ 
+            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
+            'divide', 'email', 'emphasis', 'header', 'html',
+            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'paragraph', 'quotation', 'reference', 'setext',
+        ],
+        setext: [ 'autolink', 'code', 'emphasis', 'html', 'image', 'linebreak', 'link' ]
+    },
+
     interpolate:
     {
         vars: /\{([\w.]+)(?:\?\?(.*?))?\}/g,

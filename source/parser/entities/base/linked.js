@@ -19,17 +19,6 @@ export default
         `(?<=${s.ne}\\]\\(.*?)${s.swole}\\)`,
     ],
     
-    nestable: 
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'html', 
-        'image', 
-        'link',
-    ],
-
     inlineClose(part, state)
     {
         return this.stream.use(state.closeInlineRe, part.endex).clip();

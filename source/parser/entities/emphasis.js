@@ -20,17 +20,6 @@ export default
     order: 30, 
     priority: 30,
 
-    nestable:
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'image',
-        'linebreak', 
-        'link', 
-    ],
-
     delims: [ `${s.fn.flank.r('\\*')}|${s.fn.flank.r('_')}` ],
 
     getDelimRun(part)

@@ -16,29 +16,6 @@ export default
     order: 30,
     priority: 20,
 
-    nestable:
-    [ 
-        'arbitag',
-        'autolink', 
-        'code', 
-        'codeblock',
-        'codefence', 
-        'divide', 
-        'email', 
-        'emphasis', 
-        'header', 
-        'html',
-        'htmlblock',
-        'image',
-        'linebreak',
-        'link', 
-        'list',
-        'paragraph',
-        'quotation', 
-        'reference', 
-        'setext',
-    ],
-
     state:
     {
         rejectOn: [ 'codefence', 'divide', 'list' ],

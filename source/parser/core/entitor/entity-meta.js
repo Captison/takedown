@@ -1,10 +1,10 @@
 import * as entities from '../../entities'
-import mixer from './mixer'
+import mix from './mix'
 
 
 let reducer = (array, name) =>
 {
-    let ent = mixer(name);
+    let ent = mix(name);
     
     if (ent.type === 'inline')
     {

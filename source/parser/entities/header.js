@@ -9,16 +9,6 @@ export default
     type: 'block',
     order: 20,
 
-    nestable: 
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'html', 
-        'link', 
-    ],
-
     regex:
     {
         open: s => `${s.sol}(?<marks>${s.oah})(?:${s.sot}+(?<text>(?!#+\\s*\\n).+?))?(?:${s.sot}+#*)?\\s*${s.eol}`

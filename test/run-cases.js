@@ -2,8 +2,6 @@ import chalk from 'chalk'
 import takedown from '../source'
 
 
-let { stdout: so } = process;
-
 export default (cases, list) =>
 {
     let include = tc =>
@@ -19,16 +17,14 @@ export default (cases, list) =>
     let test = tc =>
     {
         let { markdown, html, example, section } = tc;
-
-        so.write(`Running test case ${example} ${section} ... `);
         
         let beg = performance.now();
         let result = td.parse(markdown);
-        let end = performance.now();
-        
+        let end = performance.now();        
         let time = Math.round((end - beg) * 1000) / 1000;
-        let status = html === result ? chalk.greenBright('PASS') : chalk.redBright('FAIL');
-        so.write(`${status} (${time}ms)\n`);
+        let status = html === result ? chalk.greenBright('PASSED') : chalk.redBright('FAILED');
+        
+        console.log(`Test case ${example} ${section} ... ${status} (${time}ms)`);
 
         return { ...tc, result };
     }

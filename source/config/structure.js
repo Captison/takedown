@@ -150,6 +150,11 @@ export default
             sections: type.regexOrString
         },
 
+        nestable:
+        {
+            '*': type.stringArray,
+        },
+
         useFmConfig: type.boolean,
 
         tabSize: type.positive,
@@ -161,63 +166,63 @@ export default
     }
 }
 
-export let entity =
-{
-    '*': (_, name) => `${name} is not a valid entity configuration property`,
+// export let entity =
+// {
+//     '*': (_, name) => `${name} is not a valid entity configuration property`,
 
-    abortOnEmpty: type.boolean,
+//     abortOnEmpty: type.boolean,
 
-    action: (value, name) =>
-    {
-        if (!(typeof value === 'object' || typeof value === 'function'))
-            return `${name} must be a function or object`
-    },
+//     action: (value, name) =>
+//     {
+//         if (!(typeof value === 'object' || typeof value === 'function'))
+//             return `${name} must be a function or object`
+//     },
 
-    close: type.function,
+//     close: type.function,
 
-    compile: (value, name) =>
-    {
-        let type = typeof value;
+//     compile: (value, name) =>
+//     {
+//         let type = typeof value;
 
-        if (type === 'function') return;
-        if (type === 'object') return;
-        if (type === 'string') return;
-        if (type === 'undefined') return;
-        if (value === true) return;
+//         if (type === 'function') return;
+//         if (type === 'object') return;
+//         if (type === 'string') return;
+//         if (type === 'undefined') return;
+//         if (value === true) return;
 
-        return `${name} must be a function, object, string, \`undefined\`, or \`true\``;
-    },
+//         return `${name} must be a function, object, string, \`undefined\`, or \`true\``;
+//     },
 
-    continuator: type.boolean,
+//     continuator: type.boolean,
 
-    delims: (value, name) =>
-    {
-        let isArray = Array.isArray(value);
+//     delims: (value, name) =>
+//     {
+//         let isArray = Array.isArray(value);
 
-        if (!(isArray || typeof value === 'function'))
-            return `${name} must be a function or an array`
+//         if (!(isArray || typeof value === 'function'))
+//             return `${name} must be a function or an array`
 
-        if (isArray && value.findIndex(v => !(typeof v === 'string' || typeof v === 'function')) >= 0)
-            return `${name} array can only contain strings`
-    },
+//         if (isArray && value.findIndex(v => !(typeof v === 'string' || typeof v === 'function')) >= 0)
+//             return `${name} array can only contain strings`
+//     },
 
-    nestable: type.stringArray,
+//     nestable: type.stringArray,
 
-    order: type.positive,
+//     order: type.positive,
 
-    priority: type.positive,
+//     priority: type.positive,
 
-    regex: type.functionOrObject,
+//     regex: type.functionOrObject,
 
-    removeSameAncestor: type.boolean,
+//     removeSameAncestor: type.boolean,
     
-    state: {},
+//     state: {},
 
-    type: (value, name) => 
-    {
-        if (value !== 'block' && value !== 'inline')
-            return `${name} can only be 'block' or 'inline'`
-    },
+//     type: (value, name) => 
+//     {
+//         if (value !== 'block' && value !== 'inline')
+//             return `${name} can only be 'block' or 'inline'`
+//     },
 
-    uproot: type.boolean
-}
+//     uproot: type.boolean
+// }
