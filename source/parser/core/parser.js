@@ -6,8 +6,11 @@ export default function ({ agentPool, madoe })
 {   
     let inlineParser = ({ name, nestable }) =>
     {
-        let entity = { name, type: 'inline', nestable };
-        return source => parse(source, entity).model.chunks
+        if (nestable?.length )
+        {
+            let entity = { name, type: 'inline', nestable };
+            return source => parse(source, entity).model.chunks    
+        }
     }
 
     let context = { document: {}, inlineParser, madoe };

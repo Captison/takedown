@@ -12,13 +12,13 @@ let takedown = options =>
 
     let handleFm = (source, fn) =>
     {
+        let { fm } = td.config;
+
         if (typeof source !== 'string')
             throw new TakedownError('markdown content must be a string');
         
-        let fmre = td.config.fmCapture;
-        
-        if (fmre?.test(source)) 
-            return fn(source.match(fmre));
+        if (fm.capture?.test(source)) 
+            return fn(source.match(fm.capture));
     }
 
     td.parse = source => 
@@ -29,10 +29,11 @@ let takedown = options =>
         let doParse = parse;
         handleFm(source, match => 
         {
-            if (td.config.useFmConfig)
+            if (td.config.fm.useConfig)
             {
-                let fm = td.config.fmParser(match.groups.fm)
-                if (fm?.takedown) doParse = parser(makeConfig(td.config, fm.takedown).config)
+                let fm = td.config.fm.parser(match.groups.fm);
+                if (fm?.takedown) 
+                    doParse = parser(makeConfig(td.config, fm.takedown).config);
             }
 
             source = source.replace(match[0], '');
@@ -41,7 +42,7 @@ let takedown = options =>
         return doParse(source);
     }
 
-    td.parseMeta = source => handleFm(source, match => td.config.fmParser(match.groups.fm))
+    td.parseMeta = source => handleFm(source, match => td.config.fm.parser(match.groups.fm))
 
     return td;
 }

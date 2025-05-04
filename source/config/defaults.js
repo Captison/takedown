@@ -119,8 +119,12 @@ export default
         sections: /\{\?(((?!\{\?).)+?)\?\}/g
     },
 
-    fmCapture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
-    fmParser: source => JSON.parse(source),
+    fm:
+    {
+        capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
+        parser: source => JSON.parse(source),
+        useConfig: false
+    },
 
     convertTabsAfter: 
     [
@@ -132,8 +136,6 @@ export default
     ],
 
     tabSize: 4,
-
-    useFmConfig: false,
 
     vars: {}
 }

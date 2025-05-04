@@ -20,7 +20,7 @@ export default function(prints, notify)
         {
             set(target, prop, value)
             {
-                let nonao = typeof value === 'object' && !Array.isArray(value);
+                let nonao = typeof value === 'object' && !Array.isArray(value) && value !== null;
                 let spec = prints[prop] || prints['{*}'] || (nonao ? {} : void 0);
                 let name = id(prop), message = null, final = value;
 

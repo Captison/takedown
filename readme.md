@@ -209,42 +209,46 @@ A couple of additional variables are also available on every entity (except `roo
 Remember that the below details also apply to a string returned from a converter function.
 
 **`variables`** \
-To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the named variable is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
+To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
 
 Use the `{name??value}` syntax where `value` is the literal value to use when `name` is nullish.
 
 **`segments`** \
 To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  More directly, if variable replacement within a segment string results in the exact same string, the entire segment will be omitted.  
 
-Segments can be nested, but their behavior is not recursive.  Internal segments are processed first, and their results constitute the initial state of outer segments.
+Segments can be nested, but their behavior is not recursive.  Inner segments are processed first, and their results constitute the initial state of outer segments.
 
-#### `fmCapture`
+#### `fm`
 
-Regular expression used to capture front-matter from a markdown document.
+Settings for handling markdown front-matter.
 
-The default is below, and this can be turned off by setting to `null`.
-
-```js
-fmCapture: /^---\s*\n(?<fm>.*?)\n---\s*/s
-```
-
-Note the `<fm>` capture group above.  This group must exist in the RE, and its contents will be passed to the `fmParser` function.
-
-When this setting is `null`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
-
-#### `fmParser`
-
-Function to parse markdown front-matter.
-
-To keep this tool simple, the default front-matter format is JSON.
+Here are the defaults:
 
 ```js
-fmParser: source => JSON.parse(source)
+fm:
+{
+    capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
+    parser: source => JSON.parse(source),
+    useConfig: false
+}
 ```
 
-I know, I know... I can hear you YAMLing already.
+**`capture`** \
+Defines a regular expression used to capture front-matter from a markdown document.   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.  Set to `null` to turn front-matter off completely.
 
-Ok, here's a quick way to YAML up your front-matter:
+**`parser`** \
+Specifies the function that will parse front-matter.
+
+**`useConfig`** \
+When set to `true` Takedown will look for a `takedown` key in a document's front-matter.  The options found there will be merged atop defaults and any manually set options for that document.
+
+> When `capture` is set to `null`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
+
+---
+
+So... for simplicity, the default front-matter format is JSON. 
+
+Yes, I know. I can hear you YAMLing... here you go:
 
 ```shell
 > npm install yaml --save
@@ -256,21 +260,9 @@ and then...
 import takedown from 'takedown'
 import { parse } from 'yaml'
 
-let td = takedown({ fmParser: parse });
+let td = takedown({ fm: { parser: parse } });
 
 export default td
-```
-
-#### `useFmConfig`
-
-Set to `true` to allow document front-matter config settings.
-
-A `takedown` key in a markdown document's front-matter is assumed to be config options.  When parsing that document, these options will be merged atop defaults and any manually set options.
-
-The default:
-
-```js
-useFmConfig: false
 ```
 
 #### `vars`
@@ -326,7 +318,7 @@ This executes the default parser configuration against the [test-cases](https://
 
 ### Undocumented Stuff
 
-Takedown mostly runs off of its config settings as it is intended to operate as declaratively as possible.
+Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.
 
 As I'm sure you will discover, there are options in the config that are not documented here.  These options may be changed completely or removed entirely in the future.  Please note that anything not documented here is subject to breaking change at **any** semver level.
 

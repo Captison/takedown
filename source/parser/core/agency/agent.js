@@ -22,6 +22,8 @@ export default function ()
     let state, backstate;
     // entity index tracker
     let nendex;
+    // agent data pruning
+    let getPruning = pruning(self);
     // agent entity close handler
     let close = closer(self);
 
@@ -44,27 +46,21 @@ export default function ()
             agent: true,
             id: counter++,
             chunks: [],
-            getPruning: pruning(self),
+            current,
+            document: context.document,
+            getPruning,
             opens,
             // starting/ending indexes in source
             index: -1, endex: -1,
+            inliner: ent.type === 'block' ? context.inlineParser(ent) : void 0,
+            stream: streamFn,
 
             prune: chunk => chunk ? ent.prune.call(model, chunk, state) : null,
             toString: () => model.chunk.valueOf(),
 
             get chunk() { return streamFn.slice(model.index, model.endex); },
             get content() { return model.chunks.join(''); },
-            get current() { return current; },
-            get document() { return context.document; },
-            get inliner() 
-            { 
-                if (model.type === 'block' && model.nestable?.length) 
-                    return context.inlineParser(model); 
-
-                return void 0;
-            },
             get state() { return state; },
-            get stream() { return streamFn; },
         }
 
         self.parent = parent; self.model = model;

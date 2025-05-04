@@ -130,18 +130,17 @@ export default
             }
         },
 
-        entities: {},
-
-        fmCapture: (value, name) =>
+        fm:
         {
-            if (!(value instanceof RegExp || value === null))
-                return `${name} must be a regular expression`;
-        },
+            capture: (value, name) =>
+            {
+                if (!(value instanceof RegExp || value === null))
+                    return `${name} must be a regular expression or null`;
+            },
 
-        fmParser: (value, name) =>
-        {
-            if (typeof value !== 'function')
-                return `${name} must be a function`;
+            parser: type.function,
+
+            useConfig: type.boolean,
         },
 
         interpolate:
@@ -154,8 +153,6 @@ export default
         {
             '*': type.stringArray,
         },
-
-        useFmConfig: type.boolean,
 
         tabSize: type.positive,
 
