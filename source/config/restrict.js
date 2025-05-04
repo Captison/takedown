@@ -8,24 +8,27 @@ import TakedownError from '../error/TakedownError'
     @return { Proxy }
       Restricted object.
 */
-export default function(prints)
+export default function(prints, notify)
 {
-    let proxer = (prints, name) =>
+    notify ??= () => void 0
+
+    let proxer = (prints, notify, name) =>
     {
-        let id = next => next === 'config' ? null : name ? `${name}.${next}` : next
+        let id = next => !name && next === 'config' ? null : name ? `${name}.${next}` : next
 
         return new Proxy({}, 
         {
             set(target, prop, value)
             {
-                let spec = prints[prop] || prints['{*}'];
+                let nonao = typeof value === 'object' && !Array.isArray(value);
+                let spec = prints[prop] || prints['{*}'] || (nonao ? {} : void 0);
                 let name = id(prop), message = null, final = value;
 
                 if (typeof spec === 'object')
                 {
-                    if (typeof value === 'object' && !Array.isArray(value))
+                    if (nonao)
                     {
-                        final = target[prop] || proxer(spec, name);
+                        final = target[prop] || proxer(spec, notify, name);
                         Object.keys(value).forEach(k => final[k] = value[k]);
                     }
                     else if (typeof spec[$validate] === 'function')
@@ -46,13 +49,14 @@ export default function(prints)
                     throw new TakedownError(`config: ${message}`);
 
                 target[prop] = final;
+                notify();
 
                 return true;
             }
         });
     }
 
-    return proxer(prints);
+    return proxer(prints, notify);
 }
 
 export let $validate = Symbol();

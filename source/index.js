@@ -1,13 +1,14 @@
-import parser from './parser/core'
 import defaults from './config/defaults'
 import restrict from './config/restrict'
 import structure from './config/structure'
 import TakedownError from './error/TakedownError'
+import parser from './parser/core'
 
 
 let takedown = options =>
 {
-    let td = makeConfig(defaults, options);
+    let parse, changed = true;
+    let td = makeConfig(defaults, options, () => changed = true);
 
     let handleFm = (source, fn) =>
     {
@@ -22,15 +23,16 @@ let takedown = options =>
 
     td.parse = source => 
     {
-        let doParse = parser(td.config);
+        // update parse function if config changed since last call
+        if (changed) (changed = false, parse = parser(td.config));
 
+        let doParse = parse;
         handleFm(source, match => 
         {
             if (td.config.useFmConfig)
             {
                 let fm = td.config.fmParser(match.groups.fm)
-                if (fm?.takedown) 
-                    doParse = parser(makeConfig(td.config, fm.takedown).config)
+                if (fm?.takedown) doParse = parser(makeConfig(td.config, fm.takedown).config)
             }
 
             source = source.replace(match[0], '');
@@ -46,9 +48,9 @@ let takedown = options =>
 
 export default takedown;
 
-let makeConfig = (one, two) =>
+let makeConfig = (one, two, notify) =>
 {
-    let td = restrict(structure);
+    let td = restrict(structure, notify);
 
     td.config = one || {};
     td.config = two || {};
