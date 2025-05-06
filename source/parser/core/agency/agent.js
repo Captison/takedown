@@ -6,11 +6,12 @@ import pruning from './pruning'
 
 let counter = 100;
 // let spc = (str, ct) => str + ' '.repeat(ct - str.length)
-// let actionLog = (model, parent, action, chunk) =>
+// let id = model => `${model.type}-${model.name}:${(model.id * 17).toString(32)}`
+// let actionLog = ( parent, model, action, chunk) =>
 // {
-//     let parentId = parent ? `${parent.model.type}-${parent.model.name}:${(parent.id * 17).toString(32)}` : '';
+//     let parentId = parent ? id(parent.model) : '';
 //     let chunkId = chunk && `${chunk.id}:${chunk.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⤇')}`;
-//     console.log('๏', spc(parentId, 21), '๏', spc(model.id, 21), '๏', spc(String(action), 8), '๏', chunkId);
+//     console.log('๏', spc(parentId, 21), '๏', spc(id(model), 21), '๏', spc(String(action), 8), '๏', chunkId);
 // }
 
 export default function ()
@@ -164,17 +165,12 @@ export default function ()
     {
         for (;nendex<model.nesters.length;nendex++)
         {
-            let ent = model.nesters[nendex];
-            // when parentless make sure this entity can be top-level
-            if (parent || !ent.uproot) 
-            {
-                let candidate = agent(ent, self);
-                let response = candidate.open(chunk);
-                // response can be an action here
-                if (response) return candidate.next(chunk, response);
-                // return agent object to pool
-                agent.repool(candidate);
-            }
+            let candidate = agent(model.nesters[nendex], self);
+            let response = candidate.open(chunk);
+            // response can be an action here
+            if (response) return candidate.next(chunk, response);
+            // return agent object to pool
+            agent.repool(candidate);
         }
     }
 
@@ -215,7 +211,7 @@ export default function ()
             if (action.value === true) action.value = chunk;
         }
 
-        // actionLog(model, parent?.model, action, chunk);
+        // actionLog(parent, model, action, chunk);
 
         // continue and look for children
         if (action.accept) return spawn(chunk) || apply(chunk, action.value);

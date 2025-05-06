@@ -100,11 +100,11 @@ export default
 {
     config:
     {
-        '*': (_, name) => `${name} is not a valid configuration property`,
+        '{*}': (_, name) => `${name} is not a valid configuration property`,
 
         convert:
         {
-            '*': (value, name) => 
+            '{*}': (value, name) => 
             {
                 let attr = name.split('.').pop();
 
@@ -122,25 +122,24 @@ export default
 
         delouse: 
         {
-            '*': 
+            '{*}': 
             {
                 [$validate]: type.stringArray,
 
-                '*': type.stringArray
+                '{*}': type.stringArray
             }
         },
 
         fm:
         {
-            capture: (value, name) =>
-            {
-                if (!(value instanceof RegExp || value === null))
-                    return `${name} must be a regular expression or null`;
-            },
-
+            active: type.boolean,
+            capture: type.regex,
             parser: type.function,
-
-            useConfig: type.boolean,
+            useConfig: (value, name) =>
+            {
+                if (!(typeof value === 'boolean' || typeof value === 'string'))
+                    return `${name} must be a boolean or string value`
+            }
         },
 
         interpolate:
@@ -151,75 +150,14 @@ export default
 
         nestable:
         {
-            '*': type.stringArray,
+            '{*}': type.stringArray,
         },
 
         tabSize: type.positive,
 
         vars: 
         {
-            '*': () => {}
+            '{*}': () => {}
         }
     }
 }
-
-// export let entity =
-// {
-//     '*': (_, name) => `${name} is not a valid entity configuration property`,
-
-//     abortOnEmpty: type.boolean,
-
-//     action: (value, name) =>
-//     {
-//         if (!(typeof value === 'object' || typeof value === 'function'))
-//             return `${name} must be a function or object`
-//     },
-
-//     close: type.function,
-
-//     compile: (value, name) =>
-//     {
-//         let type = typeof value;
-
-//         if (type === 'function') return;
-//         if (type === 'object') return;
-//         if (type === 'string') return;
-//         if (type === 'undefined') return;
-//         if (value === true) return;
-
-//         return `${name} must be a function, object, string, \`undefined\`, or \`true\``;
-//     },
-
-//     continuator: type.boolean,
-
-//     delims: (value, name) =>
-//     {
-//         let isArray = Array.isArray(value);
-
-//         if (!(isArray || typeof value === 'function'))
-//             return `${name} must be a function or an array`
-
-//         if (isArray && value.findIndex(v => !(typeof v === 'string' || typeof v === 'function')) >= 0)
-//             return `${name} array can only contain strings`
-//     },
-
-//     nestable: type.stringArray,
-
-//     order: type.positive,
-
-//     priority: type.positive,
-
-//     regex: type.functionOrObject,
-
-//     removeSameAncestor: type.boolean,
-    
-//     state: {},
-
-//     type: (value, name) => 
-//     {
-//         if (value !== 'block' && value !== 'inline')
-//             return `${name} can only be 'block' or 'inline'`
-//     },
-
-//     uproot: type.boolean
-// }

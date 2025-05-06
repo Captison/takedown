@@ -1,5 +1,3 @@
-import * as entities from '../parser/entities'
-
 
 export default
 {
@@ -41,8 +39,6 @@ export default
         ulist: '<ul>\n{value}</ul>\n'
     },
     
-    entities,
-
     delouse:
     {
         autolink:
@@ -98,9 +94,9 @@ export default
         paragraph: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'linebreak', 'link' ],
         quotation:
         [ 
-            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
-            'divide', 'email', 'emphasis', 'header', 'html',
-            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'codeblock', 'codefence', 
+            'divide', 'header',
+            'htmlblock', 'list',
             'paragraph', 'quotation', 'reference', 'setext',
         ],
         root:
@@ -121,9 +117,10 @@ export default
 
     fm:
     {
+        active: false,
         capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
         parser: source => JSON.parse(source),
-        useConfig: false
+        useConfig: 'takedown'
     },
 
     convertTabsAfter: 

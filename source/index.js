@@ -10,39 +10,50 @@ let takedown = options =>
     let parse, changed = true;
     let td = makeConfig(defaults, options, () => changed = true);
 
-    let handleFm = (source, fn) =>
+    let getFm = source =>
     {
         let { fm } = td.config;
 
         if (typeof source !== 'string')
             throw new TakedownError('markdown content must be a string');
-        
-        if (fm.capture?.test(source)) 
-            return fn(source.match(fm.capture));
+
+        if (fm.active && fm.capture.test(source))
+            return source.match(fm.capture);
     }
 
-    td.parse = source => 
+    td.parse = source =>
     {
+        let match = getFm(source);
         // update parse function if config changed since last call
         if (changed) (changed = false, parse = parser(td.config));
 
-        let doParse = parse;
-        handleFm(source, match => 
+        let { fm } = td.config, doParse = parse;
+        
+        if (match)
         {
-            if (td.config.fm.useConfig)
-            {
-                let fm = td.config.fm.parser(match.groups.fm);
-                if (fm?.takedown) 
-                    doParse = parser(makeConfig(td.config, fm.takedown).config);
-            }
-
+            // remove front-matter from source
             source = source.replace(match[0], '');
-        });
+
+            if (fm.useConfig)
+            {
+                let data = fm.parser(match.groups.fm);
+                // update parser with config from document (if available)
+                if (data)
+                {
+                    let config = fm.useConfig === true ? data : data[fm.useConfig];
+                    doParse = parser(makeConfig(td.config, config).config);
+                }
+            }
+        }
 
         return doParse(source);
     }
 
-    td.parseMeta = source => handleFm(source, match => td.config.fm.parser(match.groups.fm))
+    td.parseMeta = source =>
+    {
+        let fm = getFm(source)?.groups.fm;
+        if (fm) return td.config.fm.parser(fm);
+    }
 
     return td;
 }

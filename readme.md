@@ -1,8 +1,10 @@
 
-# Takedown
-
-A markdown parser that gives you control of the output document structure.
-
+<div style="display:flex;justify-content:center;">
+  <div style="text-align:center">
+    <img src="logo-sm.png" alt="logo" />
+    <div>A markdown parser that puts you in control.</div>
+  </div>
+</div>
 
 ## How do I use this?
 
@@ -23,12 +25,17 @@ let markdown = 'Your markdown *here*!';
 // make some HTML!
 let html = td.parse(markdown);
 // => <p>Your markdown <em>here</em>!</p>
-
-// get front-matter!
-let fm = td.parseMeta(markdown);
 ```
 
 Simple!
+
+To get front-matter...
+
+```js
+let td = takedown({ fm: { active: true } });
+// front-matter is parsed as JSON by default
+let fm = td.parseMeta(markdown);
+```
 
 ## How do I configure this?
 
@@ -224,22 +231,26 @@ Here are the defaults:
 ```js
 fm:
 {
+    active: false,
     capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
     parser: source => JSON.parse(source),
-    useConfig: false
+    useConfig: 'takedown'
 }
 ```
 
+**`active`** \
+*Boolean to activate/deactivate front matter processing.*  When `false`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
+
 **`capture`** \
-*Regular expression to capture front-matter.*   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.  Set to `null` to turn front-matter off completely.
+*Regular expression to capture front-matter.*   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.
 
 **`parser`** \
-*Function to parse front-matter.*  Text content from `capture` is passed to this function.
+*Function to parse front-matter.*  Document content from `capture` is passed to this function.
 
 **`useConfig`** \
-*Boolean to indicate config settings in front-matter.*  A `takedown` key in front-matter is assumed to be additional config options for that document.  These options will be merged atop defaults and any manually set options.
+*Front-matter key containing additional config options.*  By default, a `takedown` key in front-matter is assumed to be additional config options for that document.  These options will be merged atop defaults and any manually set options.  Setting this to `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
 
-> When `capture` is set to `null`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
+> NOTE: For obvious reasons, any `fm` settings appearing in front-matter are ignored.
 
 ---
 
@@ -257,7 +268,7 @@ and then...
 import takedown from 'takedown'
 import { parse } from 'yaml'
 
-let td = takedown({ fm: { parser: parse } });
+let td = takedown({ fm: { active: true, parser: parse } });
 
 export default td
 ```
@@ -286,7 +297,7 @@ td.config.vars = { something: 'Takedown rules' };
 
 ### CommonMark
 
-While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.commonmark.org) spec compliant as per version **0.31.2**.  It is pure vanilla and also does not add anything to the spec (except front-matter, I guess).  
+While highly configurable, Takedown parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  It is pure vanilla and does not add anything to the spec.
 
 There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CommonMark test-cases, but these have no effect on the semantic correctness of the html output.
 

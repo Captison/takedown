@@ -17,9 +17,7 @@ export default
     regex:
     {
         open: s => [ `${s.sol}(?<text>[^\\s].*)${s.eol}`, 's' ],
-        // prune: s => `^${s.mi}`,
         close: s => [ `^${s.mi}(?<type>=+|-+)\\s*$`, 's' ],
-        // full: /^(?<text>.+?)\n(?<type>=+|-+)\s*$/s,
         blank: /^\s*\n/
     },
 
@@ -50,7 +48,5 @@ export default
     {
         let level = state.type[0] === '=' ? 1 : 2;
         return { name: 'setext', level, chunks: content.join('').trimEnd() };
-    },
-
-    delouse: [ 'standard', 'commonChar=>commonEnt' ]
+    }
 }

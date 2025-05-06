@@ -16,7 +16,6 @@ export default
 {
     type: 'block',
     priority: 30,
-    uproot: true,
 
     contentAhead(line, state)
     {

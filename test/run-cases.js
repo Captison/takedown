@@ -1,8 +1,7 @@
 import chalk from 'chalk'
-import takedown from '../source'
 
 
-export default (cases, list) =>
+export default (parse, cases, list) =>
 {
     let include = tc =>
     {
@@ -12,15 +11,13 @@ export default (cases, list) =>
         return false;
     }
 
-    let td = takedown({ fmCapture: null });
-
     let test = tc =>
     {
         let { markdown, html, example, section } = tc;
         
         let beg = performance.now();
-        let result = td.parse(markdown);
-        let end = performance.now();        
+        let result = parse(markdown);
+        let end = performance.now();   
         let time = Math.round((end - beg) * 1000) / 1000;
         let status = html === result ? chalk.greenBright('PASSED') : chalk.redBright('FAILED');
         
