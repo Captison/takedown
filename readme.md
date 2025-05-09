@@ -1,15 +1,7 @@
 
-<style>
-  .td-logo { display: flex; justify-content: center; }
-  .td-logo-inner { text-align: center; }
-  .td-logo img { margin-bottom: 4px; border-radius: 20px; width: 500px; height: fit-content; }
-</style>
-<div class="td-logo">
-  <div class="td-logo-inner">
-    <img src="logo-main.png" alt="logo" />
-    <div>A markdown parser that puts you in control.</div>
-  </div>
-</div>
+<img src="https://raw.githubusercontent.com/Captison/takedown/refs/heads/develop/logo-main.png" alt="logo" width="500" >
+
+A markdown parser that puts you in control.
 
 ## How do I use this?
 
