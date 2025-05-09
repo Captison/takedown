@@ -16,6 +16,8 @@ export default
         { format: 'umd', file: 'dist/takedown.min.js', name: 'takedown', plugins: [ pluginTerser() ] }, 
         { format: 'esm', file: 'dist/takedown.esm.js' },
         { format: 'esm', file: 'dist/takedown.esm.min.js', plugins: [ pluginTerser() ] },
+        // unbundled CJS
+        { format: 'cjs', dir: 'dist/cjs', preserveModules: true, exports: 'named' } 
     ],  
 
     plugins:
@@ -27,7 +29,8 @@ export default
             targets:
             [
                 { src: path.join('source', 'index.html'), dest: path.join('dist') },
-                { src: '*.png', dest: path.join('dist') }    
+                { src: path.join('source', 'index.d.ts'), dest: path.join('dist', 'types'), rename: 'takedown.d.ts' },
+                { src: '*.png', dest: path.join('dist', 'images') }    
             ]
         })
     ]

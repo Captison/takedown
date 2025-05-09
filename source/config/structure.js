@@ -113,8 +113,8 @@ export default
 
                 let type = typeof value;
 
-                if (!(type === 'string' || type === 'function' || type === null)) 
-                    return `${name} spec must be a string or a function`;
+                if (!(type === 'string' || type === 'function' || value === null)) 
+                    return `${name} spec must be a string, a function, or null`;
             }
         },
 

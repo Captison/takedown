@@ -68,6 +68,8 @@ export default function (config)
     
     let inter = (str, data) =>
     {
+        str ??= '';
+
         let reps = { ...vars, ...data };
         let solve = value => typeof value === 'function' ? value(data) : value
 

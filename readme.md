@@ -1,27 +1,38 @@
 
-<div style="display:flex;justify-content:center;">
-  <div style="text-align:center">
-    <img src="logo-sm.png" alt="logo" />
+<style>
+  .td-logo { display: flex; justify-content: center; }
+  .td-logo-inner { text-align: center; }
+  .td-logo img { margin-bottom: 4px; border-radius: 20px; width: 500px; height: fit-content; }
+</style>
+<div class="td-logo">
+  <div class="td-logo-inner">
+    <img src="logo-main.png" alt="logo" />
     <div>A markdown parser that puts you in control.</div>
   </div>
 </div>
 
 ## How do I use this?
 
+Install.
+
 ```shell
 > npm install takedown --save
+```
+
+import or require...
+
+```js
+import takedown from 'takedown'
+// or, for commonjs
+let takedown = require('takedown').default
 ```
 
 and then...
 
 ```js
-import takedown from 'takedown'
-
-// create "instance" with configuration
-let td = takedown({ ... });
-
 let markdown = 'Your markdown *here*!';
-
+// create an "instance"
+let td = takedown();
 // make some HTML!
 let html = td.parse(markdown);
 // => <p>Your markdown <em>here</em>!</p>
@@ -32,6 +43,7 @@ Simple!
 To get front-matter...
 
 ```js
+// create "instance" with configuration
 let td = takedown({ fm: { active: true } });
 // front-matter is parsed as JSON by default
 let fm = td.parseMeta(markdown);
@@ -39,7 +51,7 @@ let fm = td.parseMeta(markdown);
 
 ## How do I configure this?
 
-As seen above, configuration can be set when creating a parser instance.
+Configuration can be set when creating a parser instance.
 
 ```js
 let quotation = '<div class="blockquote">{value}</div>';
@@ -63,11 +75,15 @@ All of the update methods above have the same effect (i.e., only `config.convert
 
 #### `convert`
 
-Strings and/or functions that specify how to have markdown entities converted. 
+Strings and/or functions that specify how markdown entities are converted to document structure. 
 
 A string will be interpolated using insertion variables and `vars` (as per `Converter String Replacement` section below).
 
-A function will receive insertion variables and `vars` as two separate parameters, respectively. The returned string will also be interpolated.
+A function should be of the form `(data: object, vars: object): string` where
+- `data` contains converter insertion variables, and
+- `vars` are configured variables (see `vars` config option)
+
+The returned string will also be interpolated as above.
 
 Here are the defaults with insertion variable names explained:
 
@@ -197,30 +213,54 @@ convert:
 }
 ```
 
-**All** of the target document structure is defined in the `convert` settings.  Omit `{value}` from a converter to suppress descendant output.  Set it to to `null` to turn off its output completely.
+**All** of the target document structure is defined in the `convert` settings.
 
-The `child` insertion variable is available only on parseable entities. It will have
+Use only `{value}` to render without formatting.
+
+```js
+// no header tags!
+td.config.convert = { header: '{value}' }
+```
+
+Omit `{value}` to suppress descendant output.
+
+```js
+// no header content!
+td.config.convert = { header: '<h{level}> no header content </h{level}>\n' }
+```
+
+Set to `null` or empty string to turn off output completely.
+
+```js
+// no more headers!
+td.config.convert = { header: null }
+```
+
+Where the `child` insertion variable is available, it will be an object having
 - `count`: number of child entities (including text nodes)
 - `first`: converter name of the first child (or `text` for text node)
 - `last`: converter name of the last child (or `text` for text node)
 
-A couple of additional variables are also available on every entity (except `root`).
-- `parent`: object with insertion data (excluding `value`) from the parent converter
+Some additional variables are also available on every entity.
+- `name`: converter name
+- `parent`: parent converter's insertion variables (excluding `value`)
 - `index`: numeric position of the entity in the parent converter
+
+The values of `parent` and `index` will be undefined for `root` converter.
 
 ##### Converter String Replacement
 
-Remember that the below details also apply to a string returned from a converter function.
+There are two facets of string replacement here:
 
-**`variables`** \
-To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
+- **variables** \
+  To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is `null` or `undefined`, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
 
-Use the `{name??value}` syntax where `value` is the literal value to use when `name` is nullish.
+  Use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
 
-**`segments`** \
-To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
+- **segments** \
+  To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
 
-Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
+  Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
 
 #### `fm`
 
@@ -238,66 +278,58 @@ fm:
 }
 ```
 
-**`active`** \
-*Boolean to activate/deactivate front matter processing.*  When `false`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
+Here's a rundown of the individual `fm` settings:
 
-**`capture`** \
-*Regular expression to capture front-matter.*   Take note of the `<fm>` capture group as its contents will be passed to the `parser` function.
+- **`active`** (*boolean*) \
+  Set to `true` to activate front-matter.  When `false`, `td.parseMeta` returns `undefined`, and `td.parse` assumes everything in the document is markdown.
 
-**`parser`** \
-*Function to parse front-matter.*  Document content from `capture` is passed to this function.
+- **`capture`** (*RegExp*) \
+  The regular expression to match front-matter.  It must have an `<fm>` capture group as its contents will be passed to the `parser` function.
 
-**`useConfig`** \
-*Front-matter key containing additional config options.*  By default, a `takedown` key in front-matter is assumed to be additional config options for that document.  These options will be merged atop defaults and any manually set options.  Setting this to `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
+- **`parser`** (*function*) \
+  Document content from `capture` is passed to this function for parsing.  It should return an object with document metadata.
 
-> NOTE: For obvious reasons, any `fm` settings appearing in front-matter are ignored.
+- **`useConfig`** (*boolean|string*) \
+  Names a key in front-matter containing additional config options for the document.  These options will be merged atop defaults and any manually set options.  A value of `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
 
----
-
-So... for simplicity, the default front-matter format is JSON. 
-
-Yes, I know. I can hear you YAMLing... here you go:
-
-```shell
-> npm install yaml --save
-```
-
-and then...
-
-```js
-import takedown from 'takedown'
-import { parse } from 'yaml'
-
-let td = takedown({ fm: { active: true, parser: parse } });
-
-export default td
-```
+> For obvious reasons, `fm` settings appearing in front-matter are ignored.
 
 #### `vars`
 
 Variables to be used in conversion strings or passed to a conversion function.
 
-The names here should include word-only (letters, numbers, and underscores) characters.  You can also use objects here to nest variables and then use dot-notation to access them in string conversion.
+Variable names can include only letters, numbers, and underscores.  Nested variables (objects) are allowed and you can use dot-notation to access them in string conversion.
 
-To make a "dynamic" variable, use a function.  Functions will be called with the current entity conversion data object.
-
-> NOTE: Function variables are not pre-called for convert functions.  Convert functions will need to get the value manually.
-
-Remember that variables directly associated with a given `convert` setting will take precedence over settings here.
+To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
 
 There are no default `vars`, but here's a shameless example.
 
+Set a variable...
+
 ```js
-td.config.convert = { emphasis: '<em>I gotta tell you {something}!</em>' };
-td.config.vars = { something: 'Takedown rules' };
+vars:
+{ 
+    something: 'Takedown rules' 
+}
 ```
+
+...and then use it in a converter like so
+
+```js
+convert:
+{ 
+    emphasis: '<em>I gotta tell you {something}!</em>' 
+}
+```
+
+> The current converter's insertion variables (`value`, `href`, `parent`, etc.) will override any `vars` with the same names in string conversion.
 
 
 ## What else do I need to know?
 
 ### CommonMark
 
-While highly configurable, Takedown parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  It is pure vanilla and does not add anything to the spec.
+While highly configurable, Takedown parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  Takedown's implementation is pure vanilla and does not add anything to the spec.
 
 There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CommonMark test-cases, but these have no effect on the semantic correctness of the html output.
 
@@ -320,7 +352,7 @@ There are many more options in config not documented here, but please note that 
 
 ## Final Notes
 
-Originally, Takedown was built to accomodate **ACID** (Another Component Interface Documenter - not yet released) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a viable markdown parsing option for any application.
+Originally, Takedown was built to accomodate **ACID** (Another Component Interface Documenter - not yet released) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
 
 As an acknowledgement, this project was initially inspired by [this article](https://medium.com/better-programming/create-your-own-markdown-parser-bffb392a06db) during the search for the markdown parser of my dreams. :smile:
 
