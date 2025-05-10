@@ -1,13 +1,13 @@
-import op from '../lib/object-path'
-import re from "../lib/re";
 import compile from './compile'
 import delouser from './delouser'
 
 
-export default function (config)
+export default function (config, inter)
 {
     let delouse = delouser(config);
+
     let { convert, interpolate, vars } = config;
+    
     let cache = {};
 
     let finalize = (model, parent, index) => 
@@ -52,33 +52,16 @@ export default function (config)
         return '';
     }
 
+    let withVars = interpolate.converters;
+
     let toFunc = spec =>
     {
         // converter function for document entity
-        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
+        if (typeof spec === 'function') return data => inter(spec(data, vars), data, withVars);        
         // string interpolation for document entity
-        if (typeof spec === 'string') return data => inter(spec, data)        
+        if (typeof spec === 'string') return data => inter(spec, data, withVars)        
         // suppress output for document entity
         return () => ''
-    }
-    
-    let insert = re.g(interpolate.vars);
-    let sects = re.g(interpolate.sections);
-    let check = (one, two) => one === two ? '' : two
-    
-    let inter = (str, data) =>
-    {
-        str ??= '';
-
-        let reps = { ...vars, ...data };
-        let solve = value => typeof value === 'function' ? value(data) : value
-
-        let doVars = str => str.replace(insert, (match, name, def) => solve(op.get(reps, name)) ?? def ?? match)
-        let doSects = str => str.replace(sects, (...args) => check(args[1], doVars(args[1])))
-
-        while (sects.test(str)) { str = doSects(str); }
-
-        return doVars(str);
     }
 
     return finalize;

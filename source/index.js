@@ -40,7 +40,8 @@ let takedown = options =>
                 // update parser with config from document (if available)
                 if (data)
                 {
-                    let config = fm.useConfig === true ? data : data[fm.useConfig];
+                    if (fm.useConfig !== true) data = data[fm.useConfig];
+                    let config = fm.varsOnly ? { vars: data } : data;
                     doParse = parser(makeConfig(td.config, config).config);
                 }
             }

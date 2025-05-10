@@ -7,6 +7,7 @@
   <title>Takedown Tester</title>
   <link rel="icon" type="image/x-icon" href="images/logo-initial.png">
   <script src='takedown.min.js'></script>
+  <script src="https://unpkg.com/js-yaml@latest"></script>
   <style>
     html, body 
     { 
@@ -160,6 +161,15 @@
         clearTimeout(to);
         to = setTimeout(() => diswin.hljs ? diswin.hljs.highlightAll() : doHighlight(), 50);
     }
+    var parse = value =>
+    {
+        try
+        {
+            main.innerHTML = td.parse(value);
+            doHighlight();
+        }
+        catch (e) { console.log(e); }
+    }
     var updateControl = value =>
     {
         buttons.forEach(btn => btn.classList[btn.name === value ? 'add' : 'remove']('selected'));
@@ -173,18 +183,16 @@
         try
         {
             td = takedown();
-            new Function('config', `'use strict'; ${value}`)(td.config);
-            main.innerHTML = td.parse(entry.value);
-            doHighlight();
+            new Function('config', 'yaml', `'use strict'; ${value}`)(td.config, jsyaml);
+            parse(entry.value);
         }
-        catch (e) { /* do nothing */ }
+        catch (e) { console.log(e) }
         localStorage.setItem('td-config', value);
     }
     var updateEntry = value =>
     {
-        main.innerHTML = td.parse(value);
+        parse(value);
         localStorage.setItem('td-entry', value);
-        doHighlight();
     }
     var updateStyle = value =>
     {

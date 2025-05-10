@@ -3,6 +3,7 @@ import respool from '../lib/resource-pool'
 import detabber from './detabber'
 import entitor from './entitor'
 import finalizer from './finalizer'
+import interpolator from './interpolator'
 import parser from './parser'
 
 
@@ -12,8 +13,11 @@ export default function (config)
 {
     let detab = detabber(config);
     let madoe = entitor(config);
-    let finalize = finalizer(config);
+    let inter = interpolator(config);
+    let finalize = finalizer(config, inter);
     let agentPool = respool(createAgent);
+
+    let { interpolate } = config;
 
     return source =>
     {
@@ -28,6 +32,8 @@ export default function (config)
         content = parse(content, 'root');
         // render document
         content = finalize(content.model);
+        // interpolate custom variables
+        if (interpolate.document) content = inter(content, null, true);
         
         return content;
     }

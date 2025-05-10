@@ -111,8 +111,14 @@ export default
 
     interpolate:
     {
-        vars: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
-        sections: /\{\?(((?!\{\?).)+?)\?\}/g
+        converters: false,
+        document: false
+    },
+
+    interpolation:
+    {
+        variables: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
+        segments: /\{\?(((?!\{\?).)+?)\?\}/g
     },
 
     fm:
@@ -120,7 +126,8 @@ export default
         active: false,
         capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
         parser: source => JSON.parse(source),
-        useConfig: 'takedown'
+        useConfig: 'takedown',
+        varsOnly: false
     },
 
     convertTabsAfter: 

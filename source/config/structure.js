@@ -139,13 +139,20 @@ export default
             {
                 if (!(typeof value === 'boolean' || typeof value === 'string'))
                     return `${name} must be a boolean or string value`
-            }
+            },
+            varsOnly: type.boolean
         },
 
         interpolate:
         {
-            vars: type.regexOrString,
-            sections: type.regexOrString
+            converters: type.boolean,
+            document: type.boolean
+        },
+
+        interpolation:
+        {
+            variables: type.regexOrString,
+            segments: type.regexOrString
         },
 
         nestable:

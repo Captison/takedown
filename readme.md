@@ -1,7 +1,9 @@
 
 <img src="https://raw.githubusercontent.com/Captison/takedown/refs/heads/develop/logo-main.png" alt="logo" width="500" >
 
-A markdown parser that puts you in control.
+*A markdown parser that puts you in control.*
+
+The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure.
 
 ## How do I use this?
 
@@ -69,11 +71,11 @@ All of the update methods above have the same effect (i.e., only `config.convert
 
 Strings and/or functions that specify how markdown entities are converted to document structure. 
 
-A string will be interpolated using insertion variables and `vars` (as per `Converter String Replacement` section below).
+A string will be interpolated using insertion variables (as per `String Conversion` section below).
 
 A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
-- `vars` are configured variables (see `vars` config option)
+- `vars` are the configured variables (see `vars` config option)
 
 The returned string will also be interpolated as above.
 
@@ -238,21 +240,7 @@ Some additional variables are also available on every entity.
 - `parent`: parent converter's insertion variables (excluding `value`)
 - `index`: numeric position of the entity in the parent converter
 
-The values of `parent` and `index` will be undefined for `root` converter.
-
-##### Converter String Replacement
-
-There are two facets of string replacement here:
-
-- **variables** \
-  To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is `null` or `undefined`, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
-
-  Use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
-
-- **segments** \
-  To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
-
-  Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
+The values of `parent` and `index` will be undefined for the `root` converter.
 
 #### `fm`
 
@@ -266,7 +254,8 @@ fm:
     active: false,
     capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
     parser: source => JSON.parse(source),
-    useConfig: 'takedown'
+    useConfig: 'takedown',
+    varsOnly: false
 }
 ```
 
@@ -284,19 +273,40 @@ Here's a rundown of the individual `fm` settings:
 - **`useConfig`** (*boolean|string*) \
   Names a key in front-matter containing additional config options for the document.  These options will be merged atop defaults and any manually set options.  A value of `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
 
+- **`varsOnly`** (*boolean*) \
+  When set to `true`, front-matter configuration is assumed to consist solely of variable (`vars`) definitions, and will be merged accordingly.  Has no effect if `useConfig` is `false`.
+
 > For obvious reasons, `fm` settings appearing in front-matter are ignored.
+
+#### `interpolate`
+
+Flags that allow for `vars` insertion in string conversion.
+
+There are two flags here:
+- **`converters`** (*boolean*) \
+  Enables `vars` insertion for the converters.  When `true`, `vars` is merged under the converter's own insertion variables.
+- **`document`** (*boolean*) \
+  Enables `vars` insertion for the target document.  This step takes place after the target document has been fully constructed.
+
+These flags are disabled by default.
+
+```js
+interpolate:
+{
+    converters: false,
+    document: false
+}
+```
+
+Note that conversion functions will always receive `vars` as the second parameter regardless of the setting here.
 
 #### `vars`
 
-Variables to be used in conversion strings or passed to a conversion function.
+Insertion variables used in string conversion or passed to conversion functions.
 
 Variable names can include only letters, numbers, and underscores.  Nested variables (objects) are allowed and you can use dot-notation to access them in string conversion.
 
-To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
-
 There are no default `vars`, but here's a shameless example.
-
-Set a variable...
 
 ```js
 vars:
@@ -305,7 +315,7 @@ vars:
 }
 ```
 
-...and then use it in a converter like so
+After setting a variable (above), use it in a converter like so
 
 ```js
 convert:
@@ -314,16 +324,34 @@ convert:
 }
 ```
 
-> The current converter's insertion variables (`value`, `href`, `parent`, etc.) will override any `vars` with the same names in string conversion.
+Remember that at least one `interpolate` flag must be set for `vars` to be available in string conversion.
+
+To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
+
+### String Conversion
+
+This section describes how strings are interpolated with insertion variables.
+
+There are two facets here:
+
+- **variables** \
+  To insert a variable into a string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is `null` or `undefined`, no replacement is made and the string remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
+
+  To ensure replacement, use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
+
+- **segments** \
+  To make a segment of a string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
+
+  Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
 
 
 ## What else do I need to know?
 
 ### CommonMark
 
-While highly configurable, Takedown parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  Takedown's implementation is pure vanilla and does not add anything to the spec.
+Takedown's parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  The implementation is pure vanilla and does not add anything to the spec.
 
-There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CommonMark test-cases, but these have no effect on the semantic correctness of the html output.
+There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CM test-cases, but these have no effect on the structural correctness of the html output.
 
 ### Test
 
@@ -333,13 +361,13 @@ To run tests, do
 > npm test
 ```
 
-This executes the default parser configuration against the [test-cases](https://spec.commonmark.org/0.31.2/spec.json).
+The test runner will download the [test-cases](https://spec.commonmark.org/0.31.2/spec.json) so an internet connection will be necessary.
 
 ### Undocumented Stuff
 
 Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
 
-There are many more options in config not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** semver level.
+There are many more config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
 
 
 ## Final Notes
