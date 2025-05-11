@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --import=extensionless/register
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import takedown from './dist/takedown.js'
+import takedown from 'takedown'
 
 
 let [ source, target ] = process.argv.slice(2);

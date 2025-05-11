@@ -6,6 +6,19 @@ This file describes features and configs that are not officially part of the Tak
 Everything here is subject to change (or removal) in future revisions, regardless of semver version level.
 
 
+## Command Line Interface
+
+There is a very limited CLI included called `td`.  
+
+It currently accepts only an input file and an output file and does not allow for configuration.
+
+```shell
+> td path/to/source.md path/to/target.html
+```
+
+This will be updated to be more extensive in the future.
+
+
 ## Additional Config Settings
 
 ### `convertTabsAfter`

@@ -2,7 +2,7 @@
     "name": "takedown",
     "version": "0.0.1",
     "description": "Customizable markdown parser",
-    "author": "Captison",
+    "author": "Captison <bdraper@captison.net>",
     "license": "MIT",
     "keywords": 
     [
