@@ -6,7 +6,7 @@ export default function (config, inter)
 {
     let delouse = delouser(config);
 
-    let { convert, interpolate, vars } = config;
+    let { convert, vars } = config;
     
     let cache = {};
 
@@ -52,14 +52,12 @@ export default function (config, inter)
         return '';
     }
 
-    let withVars = interpolate.converters;
-
     let toFunc = spec =>
     {
         // converter function for document entity
-        if (typeof spec === 'function') return data => inter(spec(data, vars), data, withVars);        
+        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
         // string interpolation for document entity
-        if (typeof spec === 'string') return data => inter(spec, data, withVars)        
+        if (typeof spec === 'string') return data => inter(spec, data)        
         // suppress output for document entity
         return () => ''
     }

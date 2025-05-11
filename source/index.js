@@ -17,7 +17,7 @@ let takedown = options =>
         if (typeof source !== 'string')
             throw new TakedownError('markdown content must be a string');
 
-        if (fm.active && fm.capture.test(source))
+        if (fm.enabled && fm.capture.test(source))
             return source.match(fm.capture);
     }
 

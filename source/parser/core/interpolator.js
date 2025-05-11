@@ -10,11 +10,11 @@ export default function (config)
     let sects = re.g(interpolation.segments);
     let check = (one, two) => one === two ? '' : two
     
-    return (str, data, withVars) =>
+    return (str, data) =>
     {
         str ??= '';
 
-        let reps = withVars ? { ...vars, ...data } : { ...data };
+        let reps = { ...vars, ...data };
         let solve = value => typeof value === 'function' ? value(data) : value
 
         let doVars = str => str.replace(varis, (match, name, def) => solve(op.get(reps, name)) ?? def ?? match)

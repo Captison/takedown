@@ -39,6 +39,15 @@ export default
         ulist: '<ul>\n{value}</ul>\n'
     },
     
+    convertTabsAfter: 
+    [
+        '^',
+        // listitem 
+        '[*+-]', '\\d+[.)]',
+        // quotation
+        '>',
+    ],
+
     delouse:
     {
         autolink:
@@ -78,6 +87,21 @@ export default
         strong: [ 'common' ],
     },
 
+    fm:
+    {
+        enabled: false,
+        capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
+        parser: source => JSON.parse(source),
+        useConfig: 'takedown',
+        varsOnly: false
+    },
+
+    interpolation:
+    {
+        variables: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
+        segments: /\{\?(((?!\{\?).)+?)\?\}/g
+    },
+
     nestable:
     {
         emphasis: [ 'autolink', 'code', 'email', 'emphasis', 'image', 'linebreak', 'link' ],
@@ -108,36 +132,6 @@ export default
         ],
         setext: [ 'autolink', 'code', 'emphasis', 'html', 'image', 'linebreak', 'link' ]
     },
-
-    interpolate:
-    {
-        converters: false,
-        document: false
-    },
-
-    interpolation:
-    {
-        variables: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
-        segments: /\{\?(((?!\{\?).)+?)\?\}/g
-    },
-
-    fm:
-    {
-        active: false,
-        capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
-        parser: source => JSON.parse(source),
-        useConfig: 'takedown',
-        varsOnly: false
-    },
-
-    convertTabsAfter: 
-    [
-        '^',
-        // listitem 
-        '[*+-]', '\\d+[.)]',
-        // quotation
-        '>',
-    ],
 
     tabSize: 4,
 

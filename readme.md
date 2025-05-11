@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/Captison/takedown/refs/heads/develop/logo-main.png" alt="logo" width="500" >
+![logo](source/images/logo-main-med.png)
 
 *A markdown parser that puts you in control.*
 
@@ -38,7 +38,7 @@ To get front-matter...
 
 ```js
 // create "instance" with configuration
-let td = takedown({ fm: { active: true } });
+let td = takedown({ fm: { enabled: true } });
 // front-matter is parsed as JSON by default
 let fm = td.parseMeta(markdown);
 ```
@@ -77,7 +77,7 @@ A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
 - `vars` are the configured variables (see `vars` config option)
 
-The returned string will also be interpolated as above.
+Strings returned from converter functions will also be interpolated.
 
 Here are the defaults with insertion variable names explained:
 
@@ -251,7 +251,7 @@ Here are the defaults:
 ```js
 fm:
 {
-    active: false,
+    enabled: false,
     capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
     parser: source => JSON.parse(source),
     useConfig: 'takedown',
@@ -261,8 +261,8 @@ fm:
 
 Here's a rundown of the individual `fm` settings:
 
-- **`active`** (*boolean*) \
-  Set to `true` to activate front-matter.  When `false`, `td.parseMeta` returns `undefined`, and `td.parse` assumes everything in the document is markdown.
+- **`enabled`** (*boolean*) \
+  Set to `true` to activate front-matter features.  When `false`, `td.parseMeta` returns `undefined`, and `td.parse` assumes everything in the document is markdown.
 
 - **`capture`** (*RegExp*) \
   The regular expression to match front-matter.  It must have an `<fm>` capture group as its contents will be passed to the `parser` function.
@@ -277,28 +277,6 @@ Here's a rundown of the individual `fm` settings:
   When set to `true`, front-matter configuration is assumed to consist solely of variable (`vars`) definitions, and will be merged accordingly.  Has no effect if `useConfig` is `false`.
 
 > For obvious reasons, `fm` settings appearing in front-matter are ignored.
-
-#### `interpolate`
-
-Flags that allow for `vars` insertion in string conversion.
-
-There are two flags here:
-- **`converters`** (*boolean*) \
-  Enables `vars` insertion for the converters.  When `true`, `vars` is merged under the converter's own insertion variables.
-- **`document`** (*boolean*) \
-  Enables `vars` insertion for the target document.  This step takes place after the target document has been fully constructed.
-
-These flags are disabled by default.
-
-```js
-interpolate:
-{
-    converters: false,
-    document: false
-}
-```
-
-Note that conversion functions will always receive `vars` as the second parameter regardless of the setting here.
 
 #### `vars`
 
@@ -324,8 +302,6 @@ convert:
 }
 ```
 
-Remember that at least one `interpolate` flag must be set for `vars` to be available in string conversion.
-
 To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
 
 ### String Conversion
@@ -340,7 +316,7 @@ There are two facets here:
   To ensure replacement, use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
 
 - **segments** \
-  To make a segment of a string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within a segment results in the exact same string, the entire segment will be omitted.  
+  Use `{?content?}` syntax to identify an optional portion (segment) of the string where `content` will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within `content` results in the exact same string, the entire segment will be omitted.  
 
   Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
 

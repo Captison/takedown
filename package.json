@@ -12,9 +12,8 @@
         "customize"
     ],
     "type": "module",
-    "types": "dist/types/takedown.d.ts",
+    "types": "dist/takedown.d.ts",
     "main": "dist/takedown.js",
-    "private": true,
     "scripts": 
     {
         "build": "rollup --config",

@@ -132,7 +132,7 @@ export default
 
         fm:
         {
-            active: type.boolean,
+            enabled: type.boolean,
             capture: type.regex,
             parser: type.function,
             useConfig: (value, name) =>
@@ -141,12 +141,6 @@ export default
                     return `${name} must be a boolean or string value`
             },
             varsOnly: type.boolean
-        },
-
-        interpolate:
-        {
-            converters: type.boolean,
-            document: type.boolean
         },
 
         interpolation:

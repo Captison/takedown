@@ -29,8 +29,8 @@ export default
             targets:
             [
                 { src: path.join('source', 'index.html'), dest: path.join('dist') },
-                { src: path.join('source', 'index.d.ts'), dest: path.join('dist', 'types'), rename: 'takedown.d.ts' },
-                { src: '*.png', dest: path.join('dist', 'images') }    
+                { src: path.join('source', 'index.d.ts'), dest: path.join('dist'), rename: 'takedown.d.ts' },
+                { src: path.join('source', 'assets', '*.png'), dest: path.join('dist') }    
             ]
         })
     ]
