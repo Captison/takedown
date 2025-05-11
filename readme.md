@@ -1,9 +1,9 @@
 
-![logo](source/images/logo-main-med.png)
+![logo](source/assets/logo-main-med.png)
 
 *A markdown parser that puts you in control.*
 
-The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure.
+The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure without going through an AST.
 
 ## How do I use this?
 
@@ -34,28 +34,24 @@ let html = td.parse(markdown);
 
 Simple!
 
-To get front-matter...
+
+## What's the API here?
+
+The following sections detail the api for a takedown parser instance.
 
 ```js
-// create "instance" with configuration
-let td = takedown({ fm: { enabled: true } });
-// front-matter is parsed as JSON by default
-let fm = td.parseMeta(markdown);
+let td = takedown();
 ```
 
-## How do I configure this?
+### `td.config: object`
 
-Configuration can be set when creating a parser instance.
+A proxy object for managing instance configuration.
+
+As seen above, configuration values can be set when creating a parser instance, and `config` allows them to be updated directly on the instance.
 
 ```js
 let quotation = '<div class="blockquote">{value}</div>';
 
-let td = takedown({ convert: { quotation } });
-```
-
-But it can also be updated directly on the instance.
-
-```js
 td.config = { convert: { quotation } };
 // or
 td.config.convert = { quotation };
@@ -65,13 +61,39 @@ td.config.convert.quotation = quotation;
 
 All of the update methods above have the same effect (i.e., only `config.convert.quotation` setting is affected and previous defaults/changes remain in place).  Errors are thrown for bad config settings.
 
-### Config Options
+The config options are detailed further down.
 
-#### `convert`
+### `td.parse(markdown: string): string`
+
+Where all the magic happens.  This function takes `markdown` and converts it to HTML (or whatever document structure is configured).
+
+```js
+let html = td.parse('Welcome to **Takedown**!');
+// => <p>Welcome to <strong>Takedown</strong>!</p>
+```
+
+The output of this function is dependent on entity converters. (see `convert` config option).
+
+### `td.parseMeta(markdown: string): object`
+
+Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is false.
+
+```js
+let td = takedown({ fm: { enabled: true } });
+// front-matter is parsed as JSON by default
+let fm = td.parseMeta(markdown);
+```
+
+See the `fm` config option for more details on how front-matter is handled.
+
+
+## What are the config options?
+
+### `convert`
 
 Strings and/or functions that specify how markdown entities are converted to document structure. 
 
-A string will be interpolated using insertion variables (as per `String Conversion` section below).
+A string will be interpolated using insertion variables (as per `What is "string conversion"?` section below).
 
 A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
@@ -235,14 +257,14 @@ Where the `child` insertion variable is available, it will be an object having
 - `first`: converter name of the first child (or `text` for text node)
 - `last`: converter name of the last child (or `text` for text node)
 
-Some additional variables are also available on every entity.
+Some additional variables are also available for every converter.
 - `name`: converter name
 - `parent`: parent converter's insertion variables (excluding `value`)
 - `index`: numeric position of the entity in the parent converter
 
 The values of `parent` and `index` will be undefined for the `root` converter.
 
-#### `fm`
+### `fm`
 
 Settings for handling markdown front-matter.
 
@@ -278,7 +300,7 @@ Here's a rundown of the individual `fm` settings:
 
 > For obvious reasons, `fm` settings appearing in front-matter are ignored.
 
-#### `vars`
+### `vars`
 
 Insertion variables used in string conversion or passed to conversion functions.
 
@@ -304,9 +326,10 @@ convert:
 
 To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
 
-### String Conversion
 
-This section describes how strings are interpolated with insertion variables.
+## What is "string conversion"?
+
+It is how strings are interpolated with insertion variables.
 
 There are two facets here:
 
