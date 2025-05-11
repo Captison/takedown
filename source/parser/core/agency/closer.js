@@ -30,7 +30,6 @@ export default function (self)
 
                 // abort the ancestor (results in error if root)
                 if (agent) return agent.exec(chunk, res.abort());
-                // TODO: need a better way as above can cause much reparsing
             }
             // apply to parent if existing
             let agent = parent ? parent.apply(self) : self;

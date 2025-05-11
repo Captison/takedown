@@ -1,5 +1,3 @@
-import * as entities from '../parser/entities'
-
 
 export default
 {
@@ -7,43 +5,48 @@ export default
     {
         autolink: '<a href="{url}">{value}</a>',
         code: '<code>{value}</code>',
-        codeblock: '{td.licnl}<pre><code>{value}</code></pre>\n',
-        divide: '{td.licnl}<hr />\n',
+        codeblock: '<pre><code>{value}</code></pre>\n',
+        divide: '<hr />\n',
         email: '<a href="mailto:{email}">{value}</a>',
         emphasis: '<em>{value}</em>',
-        fenceblock: v => 
-        { 
-            v.class = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-            return `{td.licnl}<pre><code{? class="language-{class}"?}>{value}</code></pre>\n`;
-        },
-        html: '{value}',
-        htmlblock: '{td.licnl}{value}',
-        header: '{td.licnl}<h{level}>{value}</h{level}>\n',
-        image: v =>
+        fenceblock: e =>
         {
-            v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-            return `<img src="{url}" alt="{alt}"{? title="{title}"?} />`;
+            e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+            return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
+        },
+        header: '<h{level}>{value}</h{level}>\n',
+        html: '{value}',
+        htmlblock: '{value}',
+        image: e =>
+        {
+            e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+            return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
         },
         linebreak: '<br />\n',
-        link: '<a href="{url}"{? title="{title}"?}>{value}</a>',
-        listitem: `<li>{value}</li>\n`,
-        olist: v =>
+        link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
+        listitem: e =>
         {
-            v.first = v.start === 1 ? null : v.start;
-            return '{td.licnl}<ol{? start="{first}"?}>\n{value}</ol>\n';
+            e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
+            return '<li>{nl}{value}</li>\n';
         },
-        paragraph: ({ parent: p, ...v }) => 
-        {
-            return p.tight ? v.value + (v.nindex < p.ncount - 1 ? '\n' : '') : '{td.licnl}<p>{value}</p>\n';
-        },
+        olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
+        paragraph: ({ parent: p, index }) => 
+            p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
         root: '{value}',
-        quotation: '{td.licnl}<blockquote>\n{value}</blockquote>\n',
-        setext: '{td.licnl}<h{level}>{value}</h{level}>\n',
+        quotation: '<blockquote>\n{value}</blockquote>\n',
+        setext: '<h{level}>{value}</h{level}>\n',
         strong: '<strong>{value}</strong>',
-        ulist: '{td.licnl}<ul>\n{value}</ul>\n'
+        ulist: '<ul>\n{value}</ul>\n'
     },
     
-    entities,
+    convertTabsAfter: 
+    [
+        '^',
+        // listitem 
+        '[*+-]', '\\d+[.)]',
+        // quotation
+        '>',
+    ],
 
     delouse:
     {
@@ -69,13 +72,13 @@ export default
         image:
         {
             value: [ 'common' ],
-            url: [ 'uri' ],
+            href: [ 'uri' ],
             title: [ 'common' ]
         },
         link:
         {
             value: [ 'common' ],
-            url: [ 'uri' ],
+            href: [ 'uri' ],
             title: [ 'common' ]
         },
         paragraph: [ 'trimAroundNewline', 'common' ],
@@ -84,35 +87,53 @@ export default
         strong: [ 'common' ],
     },
 
-    interpolate:
+    fm:
     {
-        vars: /\{([\w.]+)\}/g,
-        sections: /\{\?(((?!\{\?).)+?)\?\}/g
+        enabled: false,
+        capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
+        parser: source => JSON.parse(source),
+        useConfig: 'takedown',
+        varsOnly: false
     },
 
-    fmCapture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
-    fmParser: source => JSON.parse(source),
+    interpolation:
+    {
+        variables: /\{([\w.]+)(?:\?\?(.*?))?\}/g,
+        segments: /\{\?(((?!\{\?).)+?)\?\}/g
+    },
 
-    convertTabsAfter: 
-    [
-        '^',
-        // listitem 
-        '[*+-]', '\\d+[.)]',
-        // quotation
-        '>',
-    ],
+    nestable:
+    {
+        emphasis: [ 'autolink', 'code', 'email', 'emphasis', 'image', 'linebreak', 'link' ],
+        header: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'link' ],    
+        image: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'link' ],
+        link: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'link' ],
+        listitem:
+        [ 
+            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
+            'divide', 'email', 'emphasis', 'header', 'html',
+            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'paragraph', 'quotation', 'reference', 'setext'
+        ],
+        paragraph: [ 'autolink', 'code', 'email', 'emphasis', 'html', 'image', 'linebreak', 'link' ],
+        quotation:
+        [ 
+            'codeblock', 'codefence', 
+            'divide', 'header',
+            'htmlblock', 'list',
+            'paragraph', 'quotation', 'reference', 'setext',
+        ],
+        root:
+        [ 
+            'arbitag', 'autolink', 'code', 'codeblock', 'codefence', 
+            'divide', 'email', 'emphasis', 'header', 'html',
+            'htmlblock', 'image', 'linebreak', 'link', 'list',
+            'paragraph', 'quotation', 'reference', 'setext',
+        ],
+        setext: [ 'autolink', 'code', 'emphasis', 'html', 'image', 'linebreak', 'link' ]
+    },
 
     tabSize: 4,
 
-    useFmConfig: false,
-
-    vars:
-    {
-        td:
-        {
-            licnl: v => v.parent.name === 'listitem' && v.nindex === 0 ? '\n' : '', 
-        },
-
-        url: ''
-    }
+    vars: {}
 }

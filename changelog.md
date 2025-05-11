@@ -1,10 +1,15 @@
 # Takedown Change Log
 
 
+## Notes
+
+- how to make markdown entities pluggable?
+
+
 ## To Dos
 
-- finish up todos in code
 - add a debug mode for actionlog output
+- repool agent objects after applying to parent
 
 
 ---

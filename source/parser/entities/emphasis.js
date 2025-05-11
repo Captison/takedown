@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 let isRunSynced = (one, two) =>
@@ -13,24 +14,13 @@ let isRunSynced = (one, two) =>
 /*
     Emphasis and strong inlines.
 */
-export default ({ fn, ...s }) =>
-({
+export default
+{
     type: 'inline', 
     order: 30, 
     priority: 30,
 
-    nestable:
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'image',
-        'linebreak', 
-        'link', 
-    ],
-
-    delims: [ `${fn.flank.r('\\*')}|${fn.flank.r('_')}` ],
+    delims: [ `${s.fn.flank.r('\\*')}|${s.fn.flank.r('_')}` ],
 
     getDelimRun(part)
     {
@@ -96,16 +86,16 @@ export default ({ fn, ...s }) =>
 
     regex:
     {
-        open: [ `${fn.flank.l('\\*')}|${fn.flank.l('_')}`, 'u' ],
+        open: [ `${s.fn.flank.l('\\*')}|${s.fn.flank.l('_')}`, 'u' ],
         punct: [ s.upc, 'u' ],
         drun: `^${s.dr}$`,
 
         starDel: [ `${s.ne}\\*+`, 'y' ],
-        starRight: [ fn.flank.r('\\*'), 'yu' ],
+        starRight: [ s.fn.flank.r('\\*'), 'yu' ],
         starCheck: `^\\*|${s.ne}\\*$`,
 
         underDel: [ `${s.ne}_+`, 'y' ],
-        underRight: [ fn.flank.r('_'), 'yu' ],
+        underRight: [ s.fn.flank.r('_'), 'yu' ],
         underCheck: `^_|${s.ne}_$`,
     },
 
@@ -171,4 +161,4 @@ export default ({ fn, ...s }) =>
     },
 
     delouse: [ 'common' ]
-})
+}

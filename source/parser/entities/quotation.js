@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 /*
@@ -15,41 +16,18 @@ export default
     order: 30,
     priority: 20,
 
-    nestable:
-    [ 
-        'arbitag',
-        'autolink', 
-        'code', 
-        'codeblock',
-        'codefence', 
-        'divide', 
-        'email', 
-        'emphasis', 
-        'header', 
-        'html',
-        'htmlblock',
-        'image',
-        'linebreak',
-        'link', 
-        'list',
-        'paragraph',
-        'quotation', 
-        'reference', 
-        'setext',
-    ],
-
     state:
     {
         rejectOn: [ 'codefence', 'divide', 'list' ],
         rejectOnForcedClose: true
     },
 
-    regex: s =>
-    ({
+    regex:
+    {
         open: [ `${s.sol}> ?`, 's' ],
         prune: `${s.mi}> ?`,
         blank: /^\s*\n/
-    }),
+    },
 
     prune(line, state)
     {

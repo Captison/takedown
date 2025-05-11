@@ -4,25 +4,19 @@ import linked from './base/linked'
 /*
     Link inline.
 */
-export default s =>
+export default
 {
-    let inc = linked(s);
+    mixes: [ linked ],
 
-    let entity = { ...inc };
+    removeSameAncestor: true,
 
-    entity.removeSameAncestor = true;
-
-    entity.state =
+    state:
     {
-        ...inc.state,
         name: 'link'
-    }
+    },
 
-    entity.regex =
+    regex:
     {
-        ...inc.regex,
         open: s => `${s.ne}\\[(?=.*?${s.ne}\\])`
     }
-
-    return entity;
 }

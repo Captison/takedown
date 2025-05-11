@@ -100,11 +100,11 @@ export default
 {
     config:
     {
-        '*': (_, name) => `${name} is not a valid configuration property`,
+        '{*}': (_, name) => `${name} is not a valid configuration property`,
 
         convert:
         {
-            '*': (value, name) => 
+            '{*}': (value, name) => 
             {
                 let attr = name.split('.').pop();
 
@@ -113,8 +113,8 @@ export default
 
                 let type = typeof value;
 
-                if (!(type === 'string' || type === 'function' || type === null)) 
-                    return `${name} spec must be a string or a function`;
+                if (!(type === 'string' || type === 'function' || value === null)) 
+                    return `${name} spec must be a string, a function, or null`;
             }
         },
 
@@ -122,102 +122,43 @@ export default
 
         delouse: 
         {
-            '*': 
+            '{*}': 
             {
                 [$validate]: type.stringArray,
 
-                '*': type.stringArray
+                '{*}': type.stringArray
             }
         },
 
-        entities: {},
-
-        fmCapture: (value, name) =>
+        fm:
         {
-            if (!(value instanceof RegExp || value === null))
-                return `${name} must be a regular expression`;
+            enabled: type.boolean,
+            capture: type.regex,
+            parser: type.function,
+            useConfig: (value, name) =>
+            {
+                if (!(typeof value === 'boolean' || typeof value === 'string'))
+                    return `${name} must be a boolean or string value`
+            },
+            varsOnly: type.boolean
         },
 
-        fmParser: (value, name) =>
+        interpolation:
         {
-            if (typeof value !== 'function')
-                return `${name} must be a function`;
+            variables: type.regexOrString,
+            segments: type.regexOrString
         },
 
-        interpolate:
+        nestable:
         {
-            vars: type.regexOrString,
-            sections: type.regexOrString
+            '{*}': type.stringArray,
         },
-
-        useFmConfig: type.boolean,
 
         tabSize: type.positive,
 
         vars: 
         {
-            '*': () => {}
+            '{*}': () => {}
         }
     }
-}
-
-export let entity =
-{
-    '*': (_, name) => `${name} is not a valid entity configuration property`,
-
-    abortOnEmpty: type.boolean,
-
-    action: (value, name) =>
-    {
-        if (!(typeof value === 'object' || typeof value === 'function'))
-            return `${name} must be a function or object`
-    },
-
-    close: type.function,
-
-    compile: (value, name) =>
-    {
-        let type = typeof value;
-
-        if (type === 'function') return;
-        if (type === 'object') return;
-        if (type === 'string') return;
-        if (type === 'undefined') return;
-        if (value === true) return;
-
-        return `${name} must be a function, object, string, \`undefined\`, or \`true\``;
-    },
-
-    continuator: type.boolean,
-
-    delims: (value, name) =>
-    {
-        let isArray = Array.isArray(value);
-
-        if (!(isArray || typeof value === 'function'))
-            return `${name} must be a function or an array`
-
-        if (isArray && value.findIndex(v => !(typeof v === 'string' || typeof v === 'function')) >= 0)
-            return `${name} array can only contain strings`
-    },
-
-    nestable: type.stringArray,
-
-    order: type.positive,
-
-    priority: type.positive,
-
-    regex: type.functionOrObject,
-
-    removeSameAncestor: type.boolean,
-    
-    state: {},
-
-    type: (value, name) => 
-    {
-        if (value !== 'block' && value !== 'inline')
-            return `${name} can only be 'block' or 'inline'`
-    },
-
-    uproot: type.boolean
 }

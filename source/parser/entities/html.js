@@ -1,33 +1,35 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
-export default s =>
+let html =
+[
+    // cdata
+    '<!\\[CDATA\\[.*\\]\\]>',
+    // closetag
+    `<\\/${s.htn}\\s*>`,
+    // comment
+    '<!-{2,3}>', '<!--.*?-->',
+    // declaration
+    `<![a-zA-Z].*?>`,
+    // instruction
+    '<\\?.+?\\?>',
+    // opentag
+    `<${s.htn}(?:\\s+${s.han}(?:\\s*=\\s*(?:${s.hav}))?)*\\s*\\/?>`
+];
+
+export default
 {
-    let entity = { type: 'inline', order: 10, priority: 10 };
-
-    let html =
-    [
-        // cdata
-        '<!\\[CDATA\\[.*\\]\\]>',
-        // closetag
-        `<\\/${s.htn}\\s*>`,
-        // comment
-        '<!-{2,3}>', '<!--.*?-->',
-        // declaration
-        `<![a-zA-Z].*?>`,
-        // instruction
-        '<\\?.+?\\?>',
-        // opentag
-        `<${s.htn}(?:\\s+${s.han}(?:\\s*=\\s*(?:${s.hav}))?)*\\s*\\/?>`
-    ];
+    type: 'inline', 
+    order: 10, 
+    priority: 10,
     
-    entity.regex =
+    regex:
     {
-        open: s => [ `${s.ne}(?:${html.join('|')})`, 's' ]
-    }
+        open: [ `${s.ne}(?:${html.join('|')})`, 's' ]
+    },
 
-    entity.action = part => res.consume(part)
-    entity.compile = content => content.join('')
+    action: part => res.consume(part),
 
-    return entity;
+    compile: content => content.join('')
 }

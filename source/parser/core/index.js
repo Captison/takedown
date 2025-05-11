@@ -1,7 +1,9 @@
-import res from '../lib/action-response'
+import createAgent from './agency/agent'
+import respool from '../lib/resource-pool'
 import detabber from './detabber'
 import entitor from './entitor'
 import finalizer from './finalizer'
+import interpolator from './interpolator'
 import parser from './parser'
 
 
@@ -11,20 +13,13 @@ export default function (config)
 {
     let detab = detabber(config);
     let madoe = entitor(config);
-    let finalize = finalizer(config);
-
-    let root = madoe(
-    { 
-        name: 'root', 
-        type: 'block', 
-        nestable: Object.keys(config.entities), 
-        action: line => line.trim('') === '' ? res.censor() : res.accept(line), 
-        compile: true 
-    });        
+    let inter = interpolator(config);
+    let finalize = finalizer(config, inter);
+    let agentPool = respool(createAgent);
 
     return source =>
     {
-        let parse = parser({ madoe });
+        let parse = parser({ agentPool, madoe });
 
         let content = source;
         // replace insecure character
@@ -32,7 +27,7 @@ export default function (config)
         // replace structural tabs with spaces
         content = detab(content);
         // parse document
-        content = parse(content, root);
+        content = parse(content, 'root');
         // render document
         content = finalize(content.model);
         

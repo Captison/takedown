@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Takedown Tester</title>
+  <link rel="icon" type="image/x-icon" href="logo-initial.png">
+  <script src='takedown.min.js'></script>
+  <script src="https://unpkg.com/js-yaml@latest"></script>
+  <style>
+    html, body 
+    { 
+        background-color: #CCCCCC;
+        font-family: Palatino, sans-serif;
+        font-size: 18px;
+        min-height: 100vh;
+        min-width: 100vw; 
+        margin: 0;
+        padding: 0;
+
+        *
+        {
+            border: none;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    main
+    {
+        display: grid;
+        grid-template-rows: min-content min-content 1fr;
+        row-gap: 8px;
+        height: 100vh;
+        padding: 8px;
+    }
+    header
+    {
+        grid-column: 1 / -1;
+        background-color: #212C4A;
+        line-height: 0;
+        padding: 8px;
+        font-size: 1.5em;
+    }
+    .control
+    {
+        display: flex;
+        justify-content: flex-start;
+        grid-column: 1 / -1;
+
+        button
+        {
+            padding: 8px 12px;
+            background-color: #DDEDFC;
+            font-weight: bold;
+            width: 100px;
+        }
+        button:hover, button.selected
+        {
+            background-color: #212C4A;
+            color: #5BE1E6;
+        }
+        .beg
+        {
+            background-color: #DDEDFC;
+            width: 24px;
+        }
+        .end
+        {
+            background-color: #DDEDFC;
+            flex: 1;
+        }
+    }
+    .flexed
+    {
+        display: flex;
+        column-gap: 8px;
+        justify-content: stretch;
+        height: 100%;
+    }
+    .entry, .style, .config
+    {
+        flex: 1;
+        background-color: #DDDDDD;
+        font-family: Monaco, monospace;
+        font-size: 15px;
+        padding: 8px;
+        outline: none;
+        overflow: auto;
+        resize: none;
+        caret-color: #212C4A;
+
+        &:focus
+        {
+            outline: 2px solid #DDEDFC;
+        }
+    }
+    .style, .config
+    {
+        white-space: pre;
+    }
+    .display
+    {
+        flex: 1;
+        border: none;
+        overflow: auto;
+        height: 100%;
+        width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="logo-main.png" alt="logo" width="300" />
+    </header>
+    <div class="control">
+      <div class="beg"></div>
+      <button name="entry">content</button>
+      <button name="style">style</button>
+      <button name="config">config</button>
+      <div class="end"></div>
+    </div>
+    <div class="flexed">
+      <textarea class="entry" placeholder="Add markdown content here."></textarea>
+      <textarea class="style" placeholder="Add a css stylesheet here."></textarea>
+      <textarea class="config" placeholder="Add options to `config` object here."></textarea>
+      <iframe class="display" src="about:blank"></iframe>
+    </div>
+  </main>
+  <script>
+    var td, to;
+    var panes = [ 'entry', 'style', 'config' ];
+
+    var control = document.querySelector('.control');
+    var buttons = control.querySelectorAll('button');
+    var config = document.querySelector('.config');
+    var entry = document.querySelector('.entry');
+    var style = document.querySelector('.style');
+    var display = document.querySelector('.display');
+    // display elements
+    var diswin = display.contentWindow.window;
+    var disdoc = display.contentWindow.document;
+    var main = document.createElement('main');
+    var css = document.createElement('style');
+
+    var setupHighlight = () =>
+    {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href= 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css';
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+
+        disdoc.head.appendChild(link);
+        disdoc.head.appendChild(script);
+    }
+    var doHighlight = () =>
+    {
+        clearTimeout(to);
+        to = setTimeout(() => diswin.hljs ? diswin.hljs.highlightAll() : doHighlight(), 50);
+    }
+    var parse = value =>
+    {
+        try
+        {
+            main.innerHTML = td.parse(value);
+            doHighlight();
+        }
+        catch (e) { console.log(e); }
+    }
+    var updateControl = value =>
+    {
+        buttons.forEach(btn => btn.classList[btn.name === value ? 'add' : 'remove']('selected'));
+
+        config.style.display = value === 'config' ? 'block' : 'none';
+        entry.style.display = value === 'entry' ? 'block' : 'none';
+        style.style.display = value === 'style' ? 'block' : 'none';
+    }
+    var updateConfig = value =>
+    {
+        try
+        {
+            td = takedown();
+            new Function('config', 'yaml', `'use strict'; ${value}`)(td.config, jsyaml);
+            parse(entry.value);
+        }
+        catch (e) { console.log(e) }
+        localStorage.setItem('td-config', value);
+    }
+    var updateEntry = value =>
+    {
+        parse(value);
+        localStorage.setItem('td-entry', value);
+    }
+    var updateStyle = value =>
+    {
+        css.innerHTML = value;
+        localStorage.setItem('td-style', value);
+    }
+
+    // init state
+    setupHighlight();
+    disdoc.head.appendChild(css);
+    disdoc.body.appendChild(main);
+
+    updateControl('entry');
+    updateConfig(config.value = localStorage.getItem('td-config') || '');
+    updateEntry(entry.value = localStorage.getItem('td-entry') || '');
+    updateStyle(style.value = localStorage.getItem('td-style') || '');
+
+    // event handling
+    control.addEventListener('click', e => updateControl(e.target.name));
+    config.addEventListener('input', e => updateConfig(e.target.value));
+    entry.addEventListener('input', e => updateEntry(e.target.value));
+    style.addEventListener('input', e => updateStyle(e.target.value));
+  </script>
+</body>
+</html>

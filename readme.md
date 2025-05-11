@@ -1,45 +1,51 @@
 
-# Takedown
+![logo](source/images/logo-main-med.png)
 
-A markdown parser that puts you in control... of everything.
+*A markdown parser that puts you in control.*
 
+The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure.
 
 ## How do I use this?
 
+Install.
+
 ```shell
-npm install takedown --save
+> npm install takedown --save
+```
+
+import or require...
+
+```js
+import takedown from 'takedown'
+// or, for commonjs
+let takedown = require('takedown').default
 ```
 
 and then...
 
 ```js
-import takedown from 'takedown'
-
-// create "instance" with configuration
-let td = takedown({ ... });
-
-let markdown = 'Your markdown here!';
-
+let markdown = 'Your markdown *here*!';
+// create an "instance"
+let td = takedown();
 // make some HTML!
 let html = td.parse(markdown);
-
-// get front-matter!
-let fm = td.parseMeta(markdown);
+// => <p>Your markdown <em>here</em>!</p>
 ```
 
 Simple!
 
-> Both `parse` and `parseMeta` functions will throw an exception if the parameter is not a string.
+To get front-matter...
 
-
-## Example
-
-TODO: Put a decent example here!
-
+```js
+// create "instance" with configuration
+let td = takedown({ fm: { enabled: true } });
+// front-matter is parsed as JSON by default
+let fm = td.parseMeta(markdown);
+```
 
 ## How do I configure this?
 
-As seen above, configuration can be set when creating a parser instance.
+Configuration can be set when creating a parser instance.
 
 ```js
 let quotation = '<div class="blockquote">{value}</div>';
@@ -63,13 +69,15 @@ All of the update methods above have the same effect (i.e., only `config.convert
 
 #### `convert`
 
-Specifies how you would like to have markdown entities converted.  
+Strings and/or functions that specify how markdown entities are converted to document structure. 
 
-Each converter can be either a string or a function.
+A string will be interpolated using insertion variables (as per `String Conversion` section below).
 
-When using a string, brace (`{}`) enclosed insertion variable names will be replaced with data from the markdown entity or configuration variables (see `vars` option).
+A function should be of the form `(data: object, vars: object): string` where
+- `data` contains converter insertion variables, and
+- `vars` are the configured variables (see `vars` config option)
 
-When using a function, an object containing the entity's insertion variables is passed as the first argument.  The second argument is the `vars` object.  The string returned from the function is interpolated as above and then used as the replacement value for the entity.
+Strings returned from converter functions will also be interpolated.
 
 Here are the defaults with insertion variable names explained:
 
@@ -89,11 +97,7 @@ convert:
     /*
         value - code block source
     */
-    codeblock: v =>
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<pre><code>{value}</code></pre>\n`;
-    },
+    codeblock: '<pre><code>{value}</code></pre>\n',
     /*
         marks - symbols used for thematic break
     */
@@ -105,6 +109,7 @@ convert:
     email: '<a href="mailto:{email}">{value}</a>',
     /*
         value - emphasis text
+        child - child data
     */
     emphasis: '<em>{value}</em>',
     /*
@@ -112,33 +117,31 @@ convert:
         info - fence block info-string
         fence - opening ticks
     */
-    fenceblock: v => 
-    { 
-        v.class = v.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-        return `<pre><code{? class="language-{class}"?}>{value}</code></pre>\n`;
+    fenceblock: e =>
+    {
+        e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+        return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
     },
     /*
         value - header tag content
         level - header level (1-6)
+        child - child data
     */
-    header: v =>
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<h{level}>{value}</h{level}>\n`;
-    },
+    header: '<h{level}>{value}</h{level}>\n',
     /*
         value - inline html content
     */
     html: '{value}',
     /*
         value - image description
-        url - encoded image URL
+        href - encoded image URL
         title - image description
+        child - child data
     */
-    image: v =>
+    image: e =>
     {
-        v.alt = v.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-        return `<img src="{url}" alt="{alt}"{? title="{title}"?} />`;
+        e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+        return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
     },
     /*
         nada.
@@ -146,208 +149,206 @@ convert:
     linebreak: '<br />',
     /*
         value - link text
-        url - encoded link URL
+        href - encoded link URL
         title - link description
+        child - child data
     */
-    link: '<a href="{url}"{? title="{title}"?}>{value}</a>',
+    link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
     /*
         value - list item content
         tight - should paragraphs be suppressed?
+        child - child data
     */
-    listitem: v => `<li>${v.loose?'\n':''}{value}</li>\n`,
+    listitem: e =>
+    {
+        e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
+        return '<li>{nl}{value}</li>\n';
+    },
     /*
         value - list content
         start - starting index
-        type - type of list (`1`, `A`, or `a`)
         tight - should paragraphs be suppressed?
+        child - child data
     */
-    olist: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<ol{? start="{start}"?}{? type="{type}"?}>\n{value}</ol>\n`;
-    },
+    olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
     /*
         value - paragraph content
+        child - child data
     */
-    paragraph: '<p>{value}</p>\n',
+    paragraph: ({ parent: p, index }) => 
+        p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
     /*
         value - block quote content
+        child - child data
     */
-    quotation: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<blockquote>\n{value}</blockquote>\n`;
-    },
+    quotation: '<blockquote>\n{value}</blockquote>\n',
     /*
         value - entire document output
+        child - child data
     */
     root: '{value}',
     /*
         value - setext header tag content
         level - setext header level (1-2)
+        child - child data
     */
     setext: '<h{level}>{value}</h{level}>\n',
     /*
         value - strong emphasis text
+        child - child data
     */
     strong: '<strong>{value}</strong>',
     /*
         value - list content
         tight - should paragraphs be suppressed?
+        child - child data
     */
-    ulist: v => 
-    {
-        let nl = v.parent.name === 'listitem' ? '\n' : '';
-        return `${nl}<ul>\n{value}</ul>\n`
-    },
+    ulist: '<ul>\n{value}</ul>\n'
 }
 ```
 
-**All** of the target document structure is defined in the `convert` settings.  Omit `{value}` from a converter to suppress descendant output.  Set it to to `null` to turn off its output completely.
+**All** of the target document structure is defined in the `convert` settings.
 
-**`parent`**
-Every converter also has the insertion variable `parent`, which contains the variable data (excluding `value`) from the containing converter. This will be `undefined` for the root converter.
-
-##### Converter String Replacement
-
-Note that the below details also apply to a string returned from a converter function.
-
-**`variables`** \
-To insert a variable into a converter string, use `{name}`, where `name` is the name of the variable to be inserted.  If the named variable is "nullish" or non-existent, no replacement is made and the data remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
-
-**`segments`** \
-To make a segment of a converter string optional, enclose it using `{?content?}` where `content` is the portion of the string that will only be rendered if at least one internal variable is replaced.  More directly, if variable replacement within a segment string results in the exact same string, the entire segment will be omitted.  
-
-Segments can be nested, but their behavior is not recursive.  Internal segments are processed first, and their results constitute the initial state of outer segments.
-
-#### `fmCapture`
-
-Regular expression used to capture front-matter from a markdown document.
-
-The default is below, and this can be turned off by setting to `null`.
+Use only `{value}` to render without formatting.
 
 ```js
-fmCapture: /^---\s*\n(?<fm>.*?)\n---\s*/s
+// no header tags!
+td.config.convert = { header: '{value}' }
 ```
 
-Note the `<fm>` capture group above.  This group must exist in the RE, and its contents will be passed to the `fmParser` function.
-
-When this setting is `null`, `td.parseMeta` will return `undefined`, and `td.parse` will assume everything in the document is markdown.
-
-#### `fmParser`
-
-Function to parse markdown front-matter.
-
-To keep this tool simple, the default front-matter format is JSON.
+Omit `{value}` to suppress descendant output.
 
 ```js
-fmParser: source => JSON.parse(source)
+// no header content!
+td.config.convert = { header: '<h{level}> no header content </h{level}>\n' }
 ```
 
-I know, I know... I can hear you YAMLing already.
-
-Ok, here's a quick way to YAML up your front-matter:
-
-```shell
-npm install yaml --save
-```
-
-and then...
+Set to `null` or empty string to turn off output completely.
 
 ```js
-import takedown from 'takedown'
-import { parse } from 'yaml'
-
-let td = takedown({ fmParser: parse });
-
-export default td
+// no more headers!
+td.config.convert = { header: null }
 ```
 
-#### `useFmConfig`
+Where the `child` insertion variable is available, it will be an object having
+- `count`: number of child entities (including text nodes)
+- `first`: converter name of the first child (or `text` for text node)
+- `last`: converter name of the last child (or `text` for text node)
 
-Set to `true` to allow document front-matter config settings.
+Some additional variables are also available on every entity.
+- `name`: converter name
+- `parent`: parent converter's insertion variables (excluding `value`)
+- `index`: numeric position of the entity in the parent converter
 
-A `takedown` key in a markdown document's front-matter is assumed to be config options.  When parsing that document, these options will be merged atop defaults and any manually set options.
+The values of `parent` and `index` will be undefined for the `root` converter.
 
-The default:
+#### `fm`
+
+Settings for handling markdown front-matter.
+
+Here are the defaults:
 
 ```js
-useFmConfig: false
+fm:
+{
+    enabled: false,
+    capture: /^---\s*\n(?<fm>.*?)\n---\s*/s,
+    parser: source => JSON.parse(source),
+    useConfig: 'takedown',
+    varsOnly: false
+}
 ```
+
+Here's a rundown of the individual `fm` settings:
+
+- **`enabled`** (*boolean*) \
+  Set to `true` to activate front-matter features.  When `false`, `td.parseMeta` returns `undefined`, and `td.parse` assumes everything in the document is markdown.
+
+- **`capture`** (*RegExp*) \
+  The regular expression to match front-matter.  It must have an `<fm>` capture group as its contents will be passed to the `parser` function.
+
+- **`parser`** (*function*) \
+  Document content from `capture` is passed to this function for parsing.  It should return an object with document metadata.
+
+- **`useConfig`** (*boolean|string*) \
+  Names a key in front-matter containing additional config options for the document.  These options will be merged atop defaults and any manually set options.  A value of `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
+
+- **`varsOnly`** (*boolean*) \
+  When set to `true`, front-matter configuration is assumed to consist solely of variable (`vars`) definitions, and will be merged accordingly.  Has no effect if `useConfig` is `false`.
+
+> For obvious reasons, `fm` settings appearing in front-matter are ignored.
 
 #### `vars`
 
-Variables to be used in conversion strings or passed to a conversion function.
+Insertion variables used in string conversion or passed to conversion functions.
 
-The names here should include word-only (letters, numbers, and underscores) characters.  You can also use objects here to nest variables and then use dot-notation to access them in string conversion.
+Variable names can include only letters, numbers, and underscores.  Nested variables (objects) are allowed and you can use dot-notation to access them in string conversion.
 
-To make a "dynamic" variable, use a function.  Functions will be called with the current entity conversion data object with the return value used as the variable value.
-
-> NOTE: Dynamic variables are not pre-loadedd for convert functions.  
-> The convert function will have to get the value manually.
-> ```js
-  convert:
-  {
-      divide: (data, vars)
-      {
-          let klass = vars.label(data);
-          return `<hr class="${klass}" />\n`
-      }
-  },
-  vars:
-  {
-      label: data => data.name == 'divide' ? 'divider' : 'other'
-  }
-> ```
-
-Remember that these will be overwritten by variables used directly by a given `convert` setting.
-
-There are no defaults for this, but here's a shameless example.
+There are no default `vars`, but here's a shameless example.
 
 ```js
-{
-    vars:
-    {
-        something: 'Takedown rules'
-    },
-
-    convert:
-    {
-        emphasis: '<em>I gotta tell you {something}!</em>'
-    }
+vars:
+{ 
+    something: 'Takedown rules' 
 }
 ```
+
+After setting a variable (above), use it in a converter like so
+
+```js
+convert:
+{ 
+    emphasis: '<em>I gotta tell you {something}!</em>' 
+}
+```
+
+To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
+
+### String Conversion
+
+This section describes how strings are interpolated with insertion variables.
+
+There are two facets here:
+
+- **variables** \
+  To insert a variable into a string, use `{name}`, where `name` is the name of the variable to be inserted.  If the replacement value is `null` or `undefined`, no replacement is made and the string remains as-is.  Only letters, numbers, underscores, and periods are valid characters for `name`.
+
+  To ensure replacement, use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
+
+- **segments** \
+  Use `{?content?}` syntax to identify an optional portion (segment) of the string where `content` will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within `content` results in the exact same string, the entire segment will be omitted.  
+
+  Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
 
 
 ## What else do I need to know?
 
 ### CommonMark
 
-While highly configurable, Takedown out-of-the-box is [CommonMark](https://spec.commonmark.org) spec compliant as per version **0.31.2**.  It is pure vanilla and does not add anything to the spec, either (except front-matter, I guess).  This is true for the parsing of markdown as well as for the HTML conversion as long as no config changes that affect these are made.
+Takedown's parsing and HTML generation out-of-the-box is [CommonMark](https://spec.commonmark.org) compliant as per spec version **0.31.2**.  The implementation is pure vanilla and does not add anything to the spec.
 
-### HTML
+There are extra steps taken in the default `convert` settings (mostly concerning the placement of newlines) to get the output just right for matching the CM test-cases, but these have no effect on the structural correctness of the html output.
 
-Takedown does not generate complete HTML documents by default as it only concerns itself with generating the markup needed to represent the markdown content provided.  
+### Test
 
-Config the below or something similar if you need a full HTML document.
+To run tests, do
 
-```js
-convert:
-{
-    root: '<html><head><title>Takedown Document</title></head><body>{value}</body></html>'
-}
+```shell
+> npm test
 ```
+
+The test runner will download the [test-cases](https://spec.commonmark.org/0.31.2/spec.json) so an internet connection will be necessary.
 
 ### Undocumented Stuff
 
-Takedown mostly runs off of its config settings as it is intended to operate as declaratively as possible.
+Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
 
-As I'm sure you will discover, there are options in the config that are not documented here.  These options may be changed completely or removed entirely in the future.  Please note that anything undocumented here is subject to breaking change for **any** version revision level.
+There are many more config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
 
 
 ## Final Notes
 
-Originally, Takedown was built to accomodate **ACID** (Another Component Interface Documenter - not yet released) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a viable markdown parsing option for any application.
+Originally, Takedown was built to accomodate **ACID** (Another Component Interface Documenter - not yet released) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
 
 As an acknowledgement, this project was initially inspired by [this article](https://medium.com/better-programming/create-your-own-markdown-parser-bffb392a06db) during the search for the markdown parser of my dreams. :smile:
 

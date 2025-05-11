@@ -1,12 +1,13 @@
 import res from '../../lib/action-response'
 import normalize from '../../lib/normalize-label'
+import s from '../../lib/reparts'
 
 
 /*
     Base for link and image inlines.
 */
-export default ({ fn, ...s }) =>
-({
+export default
+{
     type: 'inline',
     order: 20,
     priority: 20,
@@ -18,17 +19,6 @@ export default ({ fn, ...s }) =>
         `(?<=${s.ne}\\]\\(.*?)${s.swole}\\)`,
     ],
     
-    nestable: 
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'html', 
-        'image', 
-        'link',
-    ],
-
     inlineClose(part, state)
     {
         return this.stream.use(state.closeInlineRe, part.endex).clip();
@@ -58,7 +48,7 @@ export default ({ fn, ...s }) =>
 
     regex:
     { 
-        textBal: fn.nest.brack(),
+        textBal: s.fn.nest.brack(),
         linkOpen: `^\\(${s.swole}`,
         refOpen: `^\\[`,
         titleTrim: /^[("'](.*?)['")]$/,
@@ -179,9 +169,9 @@ export default ({ fn, ...s }) =>
 
         data.name = name;
         // unescape and remove enclosures
-        if (url) data.url = url.replace(state.urlTrimRe, '$1');
+        if (url) data.href = url.replace(state.urlTrimRe, '$1');
         if (title) data.title = title.replace(state.titleTrimRe, '$1');
 
         return data;
     }
-})
+}

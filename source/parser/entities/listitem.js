@@ -16,30 +16,6 @@ export default
 {
     type: 'block',
     priority: 30,
-    uproot: true,
-
-    nestable:
-    [ 
-        'arbitag',
-        'autolink', 
-        'code',
-        'codeblock',
-        'codefence', 
-        'divide', 
-        'email',
-        'emphasis', 
-        'header', 
-        'html',
-        'htmlblock',
-        'image',
-        'linebreak',
-        'link', 
-        'list',
-        'paragraph',
-        'quotation', 
-        'reference',
-        'setext',
-    ],
 
     contentAhead(line, state)
     {

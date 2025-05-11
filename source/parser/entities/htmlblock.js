@@ -1,4 +1,5 @@
 import res from '../lib/action-response'
+import s from '../lib/reparts'
 
 
 let raw = [ 'pre', 'script', 'style', 'textarea' ];
@@ -20,47 +21,49 @@ let tags =
     'track', 'ul'
 ];
 
+// html block conditions (open: close)
+let blocks =
+{
+    // 1. raw data tags
+    [`<(?:${raw.join('|')})(?:\\s|>|$)`]: `<\\/(?:${raw.join('|')})>`,
+    // 2. comment block
+    ['<!--']: '-->',
+    // 3. processing instruction
+    ['<\\?']: '\\?>',
+    // 4. declaration
+    ['<![a-zA-Z]']: '>',
+    // 5. character data
+    ['<!\\[CDATA\\[']: '\\]\\]>',
+    // 6. html tags
+    [`<\\/?(?:${tags.join('|')})(?:${s.sot}|\\/?>|$)`]: s.bl
+};
+
+let keys = Object.keys(blocks);
+// re map of `blocks`
+let remap = keys.reduce((m, k) => (m.set(new RegExp(`^${k}`), new RegExp(blocks[k])), m), new Map());
+
+
 /*
     Html block (types 1-6).
 */
-export default s =>
+export default
 {
-    let entity = { type: 'block', order: 10 };
+    type: 'block', 
+    order: 10,
 
-    // html block conditions (open: close)
-    let blocks =
-    {
-        // 1. raw data tags
-        [`<(?:${raw.join('|')})(?:\\s|>|$)`]: `<\\/(?:${raw.join('|')})>`,
-        // 2. comment block
-        ['<!--']: '-->',
-        // 3. processing instruction
-        ['<\\?']: '\\?>',
-        // 4. declaration
-        ['<![a-zA-Z]']: '>',
-        // 5. character data
-        ['<!\\[CDATA\\[']: '\\]\\]>',
-        // 6. html tags
-        [`<\\/?(?:${tags.join('|')})(?:${s.sot}|\\/?>|$)`]: s.bl
-    };
-
-    let keys = Object.keys(blocks);
-    // re map of `blocks`
-    let remap = keys.reduce((m, k) => (m.set(new RegExp(`^${k}`), new RegExp(blocks[k])), m), new Map());
-
-    entity.state =
+    state:
     {
         rejectOnForcedClose: true
-    }
+    },
 
-    entity.regex =
+    regex:
     {
         open: `${s.sol}(?:${keys.join('|')})`,
         prune: `^${s.mi}`,
         blank: s.bl
-    }
+    },
 
-    entity.action =
+    action:
     {
         open(line, state)
         {
@@ -91,9 +94,7 @@ export default s =>
             
             return res.accept(pruned);
         }
-    }
+    },
 
-    entity.compile = true;
-
-    return entity;
+    compile: true
 }

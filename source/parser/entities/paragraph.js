@@ -15,18 +15,6 @@ export default
     order: 40,
     continuator: true,
 
-    nestable: 
-    [ 
-        'autolink', 
-        'code', 
-        'email', 
-        'emphasis', 
-        'html', 
-        'image',
-        'linebreak', 
-        'link', 
-    ],
-
     state:
     {
         rejectOn: [ 'codefence', 'divide', 'header', 'htmlblock', 'quotation' ],

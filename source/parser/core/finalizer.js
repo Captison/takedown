@@ -1,13 +1,13 @@
-import op from '../lib/object-path'
-import re from "../lib/re";
 import compile from './compile'
 import delouser from './delouser'
 
 
-export default function (config)
+export default function (config, inter)
 {
     let delouse = delouser(config);
-    let { convert, interpolate, vars } = config;
+
+    let { convert, vars } = config;
+    
     let cache = {};
 
     let finalize = (model, parent, index) => 
@@ -21,17 +21,20 @@ export default function (config)
             rest = delouse(rest);
 
             rest.parent = parent;
-            rest.ntype = model.type;
-            rest.nindex = index || 0;
-            rest.ncount = 0;
+            rest.index = index;
 
             // we need to finalize chunks if provided
             if (((rest.value ?? null) === null) && (chunks || chunks === '')) 
             {
                 let array = [], list = [].concat(chunks);
 
-                rest.ncount = list.length;
-                
+                rest.child =
+                {
+                    count: list.length,
+                    first: list.length ? list[0].name || 'text' : void 0,
+                    last: list.length ? list[list.length - 1].name || 'text' : void 0 
+                };
+
                 list.forEach((chunk, index) => 
                 {
                     let render = chunk.agent ? finalize(chunk, { ...rest }, index) : 
@@ -57,23 +60,6 @@ export default function (config)
         if (typeof spec === 'string') return data => inter(spec, data)        
         // suppress output for document entity
         return () => ''
-    }
-    
-    let insert = re.g(interpolate.vars);
-    let sects = re.g(interpolate.sections);
-    let check = (one, two) => one === two ? '' : two
-    
-    let inter = (str, data) =>
-    {
-        let reps = { ...vars, ...data };
-        let solve = value => typeof value === 'function' ? value(data) : value
-
-        let doVars = str => str.replace(insert, (match, name) => solve(op.get(reps, name)) ?? match)
-        let doSects = str => str.replace(sects, (...args) => check(args[1], doVars(args[1])))
-
-        while (sects.test(str)) { str = doSects(str); }
-
-        return doVars(str);
     }
 
     return finalize;

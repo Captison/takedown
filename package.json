@@ -2,30 +2,47 @@
     "name": "takedown",
     "version": "0.0.1",
     "description": "Customizable markdown parser",
-    "author": "Captison",
+    "author": "Captison <bdraper@captison.net>",
     "license": "MIT",
-    "keywords": [
+    "keywords": 
+    [
         "markdown",
-        "markdown parser",
-        "CommonMark"
+        "parser",
+        "CommonMark",
+        "customize"
     ],
     "type": "module",
+    "types": "dist/takedown.d.ts",
     "main": "dist/takedown.js",
-    "private": true,
-    "scripts": {
+    "scripts": 
+    {
         "build": "rollup --config",
         "test": "node --import=extensionless/register test",
         "lint": "eslint"
     },
-    "devDependencies": {
+    "devDependencies": 
+    {
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^16.0.1",
+        "@rollup/plugin-terser": "^0.4.4",
         "chalk": "^5.4.1",
         "eslint": "^9.23.0",
         "extensionless": "^1.9.9",
-        "rollup": "^4.40.1"
+        "rollup": "^4.40.1",
+        "rollup-plugin-copy": "^3.5.0"
     },
-    "bin": {
+    "exports": 
+    {
+        "import": "./main.js",
+        "require": "./dist/cjs/main.js"
+    },
+    "bin": 
+    {
         "td": "./run.js"
+    },
+    "repository": 
+    {
+        "type": "git",
+        "url": "https://github.com/Captison/takedown.git"
     }
 }
