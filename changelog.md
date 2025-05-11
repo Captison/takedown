@@ -16,3 +16,9 @@
 ### v0.0.1
 
 - initial release!
+
+
+### v0.0.2
+
+- readme updates ad error fixes
+- package.json adds 'md' keyword
