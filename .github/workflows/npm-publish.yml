@@ -5,37 +5,25 @@ name: Takedown Release
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
-  build:
+  publish:
+    if: github.repository == 'master'
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 23
-      - name: install
-        run: npm ci
-      - name: test
-        run: npm test
-
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
+      - name: checkout repo
         uses: actions/checkout@v4
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 23
           registry-url: https://registry.npmjs.org/
-      - name: install
+      - name: install deps
         run: npm ci
+      - name: test code
+        run: npm test
       - name: publish
-        run: npm publish --dry-run
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
