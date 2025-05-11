@@ -32,8 +32,8 @@ export default
         olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
         paragraph: ({ parent: p, index }) => 
             p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
-        root: '{value}',
         quotation: '<blockquote>\n{value}</blockquote>\n',
+        root: '{value}',
         setext: '<h{level}>{value}</h{level}>\n',
         strong: '<strong>{value}</strong>',
         ulist: '<ul>\n{value}</ul>\n'

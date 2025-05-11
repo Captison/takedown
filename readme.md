@@ -155,6 +155,10 @@ convert:
     */
     html: '{value}',
     /*
+        value - block html content
+    */
+    htmlblock: '{value}',
+    /*
         value - image description
         href - encoded image URL
         title - image description
