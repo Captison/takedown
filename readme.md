@@ -82,15 +82,46 @@ The output of this function is dependent on entity converters. (see `convert` co
 
 ### `td.parseMeta(markdown: string): object`
 
-Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is false.
+Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is `false`.
 
 ```js
-let td = takedown({ fm: { enabled: true } });
+td.config.fm.enabled = true;
 // front-matter is parsed as JSON by default
 let fm = td.parseMeta(markdown);
 ```
 
 See the `fm` config option for more details on how front-matter is handled.
+
+### `td.partition(markdown: string): array`
+
+Separates markdown content from front matter as per `fm.capture`, and returns the two raw parts in an array.
+
+If you do
+
+```js
+let [ source, matter ] = td.partition(`
+---
+title: Markdown Page
+---
+# First Header Element
+`);
+```
+
+then `source` would be
+
+```md
+# First Header Element
+```
+
+and `matter` would be
+
+```md
+---
+title: Markdown Page
+---
+```
+
+If `fm.enabled` is `false`, then `matter` will be `undefined`.
 
 
 ## What are the config options?

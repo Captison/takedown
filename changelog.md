@@ -22,3 +22,13 @@
 
 - readme updates ad error fixes
 - package.json adds 'md' keyword
+
+
+### v0.0.3
+
+- fixed bugs with extensionless imports
+
+
+### v0.0.4
+
+- added `td.partition` function

@@ -56,6 +56,12 @@ let takedown = options =>
         if (fm) return td.config.fm.parser(fm);
     }
 
+    td.partition = source =>
+    {
+        let match = getFm(source)?.[0];
+        return match ? [ source.replace(match, ''), match ] : [ source ];
+    }
+
     return td;
 }
 
