@@ -1,3 +1,7 @@
+import chars from '../data/common-chars.json' with { type: 'json' }
+import htmle from '../data/html-entities.json' with { type: 'json' }
+import s from '../lib/reparts.js'
+
 
 export default
 {
@@ -85,6 +89,38 @@ export default
         quotation: [ 'trimEnd' ],
         setext: [ 'trimAroundNewline', 'common' ],
         strong: [ 'common' ],
+    },
+
+    delousers:
+    {
+        ampersandToEnt: { search: [ `${s.ne}&(?!(amp|quot|gt|lt);)`, 'g' ], replace: '&amp;' },
+        commonCharToEnt: { search: [ '(?<cap>[<>"])', 'g' ], replace: g => chars[g.cap] },
+        unescapePunct: { search: [ `\\\\(?<cap>[${s.apc}])`, 'g' ], replace: '{cap}' },
+        namedEntToChar: 
+        { 
+            search: [ `${s.ne}(?<cap>&[a-zA-Z0-9]+?;)`, 'g' ], 
+            replace: g => htmle[g.cap]?.characters || g.match 
+        },
+        decimalEntToChar: 
+        { 
+            search: [ `${s.ne}&#(?<cap>[0-9]{1,7});`, 'g' ], 
+            replace: g => String.fromCharCode(g.cap) 
+        },
+        hexEntToChar: 
+        {
+            search: [ `${s.ne}&#x(?<cap>[a-f0-9]{1,4});`, 'gi' ], 
+            replace: g => String.fromCharCode(`0x${g.cap}`) 
+        },
+        lineEndToSpace: { search: [ `[${s.le}]`, 'g' ], replace: ' ' },
+        encodeUriChars: { search: [ '(?<cap>[^%\\w]+)', 'g' ], replace: g => encodeURI(g.cap) },
+        trimEnd: { search: '\\s*\\n$', replace: '' },
+        trimEncSpace: { search: [ '^ (?<cap>\\s*[^\\s].*) $' ], replace: '{cap}' },
+        trimAroundNewline: { search: [ '\\s*\\n\\s*', 'g' ], replace: '\n' },
+        // combo-delousers
+        common: [ 'htmlEntsToChars', 'unescapePunct', 'commonHtmlEnts' ],
+        commonHtmlEnts: [ 'ampersandToEnt', 'commonCharToEnt' ],
+        htmlEntsToChars: [ 'namedEntToChar', 'decimalEntToChar', 'hexEntToChar' ],
+        uri: [ 'htmlEntsToChars', 'unescapePunct', 'encodeUriChars', 'commonHtmlEnts' ]
     },
 
     fm:

@@ -32,3 +32,4 @@
 ### v0.0.4
 
 - added `td.partition` function
+- delouser search/replace added to configuration (undocumented)

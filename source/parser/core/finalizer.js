@@ -4,7 +4,7 @@ import delouser from './delouser.js'
 
 export default function (config, inter)
 {
-    let delouse = delouser(config);
+    let delouse = delouser(config, inter);
 
     let { convert, vars } = config;
     
@@ -46,20 +46,10 @@ export default function (config, inter)
                 rest.value = array.join('');
             }
             
-            return (cache[rest.name] ??= toFunc(convert[rest.name]))(rest);
+            return (cache[rest.name] ??= inter.toFunc(convert[rest.name]))(rest);
         }
 
         return '';
-    }
-
-    let toFunc = spec =>
-    {
-        // converter function for document entity
-        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
-        // string interpolation for document entity
-        if (typeof spec === 'string') return data => inter(spec, data)        
-        // suppress output for document entity
-        return () => ''
     }
 
     return finalize;

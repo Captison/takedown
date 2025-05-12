@@ -1,5 +1,5 @@
-import op from '../lib/object-path.js'
-import re from "../lib/re.js";
+import op from '#lib/object-path.js'
+import re from "#lib/re.js";
 
 
 export default function (config)
@@ -10,7 +10,7 @@ export default function (config)
     let sects = re.g(interpolation.segments);
     let check = (one, two) => one === two ? '' : two
     
-    return (str, data) =>
+    let inter = (str, data) =>
     {
         str ??= '';
 
@@ -24,4 +24,21 @@ export default function (config)
 
         return doVars(str);
     }
+
+    /*
+        Creates an interpolation function from a `spec`.
+
+        The spec can be a string or function.
+    */
+    inter.toFunc = spec =>
+    {
+        // spec function is called with data and vars
+        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
+        // spec string is directly interpolated
+        if (typeof spec === 'string') return data => inter(spec, data)        
+        // no output for invalid spec
+        return () => ''
+    }
+
+    return inter;
 }

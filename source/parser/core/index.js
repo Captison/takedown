@@ -1,5 +1,5 @@
+import respool from '#lib/resource-pool.js'
 import createAgent from './agency/agent.js'
-import respool from '../lib/resource-pool.js'
 import detabber from './detabber.js'
 import entitor from './entitor/index.js'
 import finalizer from './finalizer.js'
