@@ -1,6 +1,6 @@
 {
     "name": "takedown",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Customizable markdown parser",
     "author": "Captison <bdraper@captison.net>",
     "license": "MIT",
