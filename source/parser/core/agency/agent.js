@@ -1,7 +1,7 @@
-import TakedownError from '../../../error/TakedownError'
-import arbiter from './arbiter'
-import closer from './closer'
-import pruning from './pruning'
+import TakedownError from '../../../error/TakedownError.js'
+import arbiter from './arbiter.js'
+import closer from './closer.js'
+import pruning from './pruning.js'
 
 
 let counter = 100;

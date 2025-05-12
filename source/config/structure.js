@@ -1,4 +1,4 @@
-import { $validate } from './restrict'
+import { $validate } from './restrict.js'
 
 
 let type =

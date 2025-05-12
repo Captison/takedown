@@ -1,6 +1,6 @@
-import takedown from '../source'
-import profile from './profile'
-import runner from './run-cases'
+import takedown from '../source/index.js'
+import profile from './profile.js'
+import runner from './run-cases.js'
 
 
 let td = takedown();

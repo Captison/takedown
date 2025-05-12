@@ -1,8 +1,8 @@
-import defaults from './config/defaults'
-import restrict from './config/restrict'
-import structure from './config/structure'
-import TakedownError from './error/TakedownError'
-import parser from './parser/core'
+import defaults from './config/defaults.js'
+import restrict from './config/restrict.js'
+import structure from './config/structure.js'
+import TakedownError from './error/TakedownError.js'
+import parser from './parser/core/index.js'
 
 
 let takedown = options =>

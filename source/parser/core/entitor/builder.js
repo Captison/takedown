@@ -1,5 +1,5 @@
-import res from '../../lib/action-response'
-import re from '../../lib/re'
+import res from '../../lib/action-response.js'
+import re from '../../lib/re.js'
 
 
 export default function (config)

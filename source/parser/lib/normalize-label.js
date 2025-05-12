@@ -1,4 +1,4 @@
-import caseFold from './case-fold'
+import caseFold from './case-fold.js'
 
 
 let space = /\s+/g;

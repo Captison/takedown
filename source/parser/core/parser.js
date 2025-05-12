@@ -1,5 +1,5 @@
-import iterate from './iterate'
-import streamer from './streamer'
+import iterate from './iterate.js'
+import streamer from './streamer.js'
 
 
 export default function ({ agentPool, madoe })

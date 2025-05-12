@@ -1,5 +1,5 @@
-import res from '../lib/action-response'
-import setext from './setext'
+import res from '../lib/action-response.js'
+import setext from './setext.js'
 
 
 /*

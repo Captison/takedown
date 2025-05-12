@@ -1,4 +1,4 @@
-import res from '../lib/action-response'
+import res from '../lib/action-response.js'
 
 
 let mark = '(?<mark>[-+*.)])';

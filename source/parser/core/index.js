@@ -1,10 +1,10 @@
-import createAgent from './agency/agent'
-import respool from '../lib/resource-pool'
-import detabber from './detabber'
-import entitor from './entitor'
-import finalizer from './finalizer'
-import interpolator from './interpolator'
-import parser from './parser'
+import createAgent from './agency/agent.js'
+import respool from '../lib/resource-pool.js'
+import detabber from './detabber.js'
+import entitor from './entitor/index.js'
+import finalizer from './finalizer.js'
+import interpolator from './interpolator.js'
+import parser from './parser.js'
 
 
 let insecureRe = /&#x?0+;/gi;

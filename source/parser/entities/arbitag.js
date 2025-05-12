@@ -1,5 +1,5 @@
-import res from '../lib/action-response'
-import s from '../lib/reparts'
+import res from '../lib/action-response.js'
+import s from '../lib/reparts.js'
 
 
 // let raw = [ 'pre', 'script', 'style', 'textarea' ];

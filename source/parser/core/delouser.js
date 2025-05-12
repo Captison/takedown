@@ -1,5 +1,5 @@
 import htmle from '../data/html-entities.json' with { type: 'json' }
-import re from '../lib/re'
+import re from '../lib/re.js'
 
 
 /*
