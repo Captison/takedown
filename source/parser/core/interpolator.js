@@ -1,5 +1,5 @@
-import op from '../lib/object-path'
-import re from "../lib/re";
+import op from '../lib/object-path.js'
+import re from "../lib/re.js";
 
 
 export default function (config)

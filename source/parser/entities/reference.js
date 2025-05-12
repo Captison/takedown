@@ -1,6 +1,6 @@
-import res from '../lib/action-response'
-import normalize from '../lib/normalize-label'
-import s from '../lib/reparts'
+import res from '../lib/action-response.js'
+import normalize from '../lib/normalize-label.js'
+import s from '../lib/reparts.js'
 
 
 let label = `\\[(?<text>${s.ll})\\]:`;

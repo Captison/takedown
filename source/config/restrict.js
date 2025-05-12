@@ -1,4 +1,4 @@
-import TakedownError from '../error/TakedownError'
+import TakedownError from '../error/TakedownError.js'
 
 /**
     Creates a function that can construct a restricted object.

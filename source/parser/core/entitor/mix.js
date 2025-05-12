@@ -1,4 +1,4 @@
-import * as entities from '../../entities'
+import * as entities from '../../entities/index.js'
 
 
 let mix = (ent, ...mixes) =>

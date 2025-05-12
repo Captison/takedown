@@ -1,5 +1,5 @@
-import compile from './compile'
-import delouser from './delouser'
+import compile from './compile.js'
+import delouser from './delouser.js'
 
 
 export default function (config, inter)

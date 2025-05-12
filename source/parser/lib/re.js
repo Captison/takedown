@@ -1,4 +1,4 @@
-import reparts from './reparts'
+import reparts from './reparts.js'
 
 
 /*

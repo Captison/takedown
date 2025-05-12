@@ -1,4 +1,4 @@
-import linked from './base/linked'
+import linked from './base/linked.js'
 
 
 /*

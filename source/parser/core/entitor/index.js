@@ -1,6 +1,6 @@
-import builder from './builder'
-import mix from './mix'
-import { inlineDelimiters } from './entity-meta'
+import builder from './builder.js'
+import mix from './mix.js'
+import { inlineDelimiters } from './entity-meta.js'
 
 
 export default function (config)

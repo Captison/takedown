@@ -1,5 +1,5 @@
-import re from '../lib/re'
-import toChunk from './chunker'
+import re from '../lib/re.js'
+import toChunk from './chunker.js'
 
 
 /**

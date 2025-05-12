@@ -1,5 +1,5 @@
-import * as entities from '../../entities'
-import mix from './mix'
+import * as entities from '../../entities/index.js'
+import mix from './mix.js'
 
 
 let reducer = (array, name) =>

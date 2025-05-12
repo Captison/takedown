@@ -1,4 +1,4 @@
-import re from '../lib/re'
+import re from '../lib/re.js'
 
 
 let tabRe = /\t/;

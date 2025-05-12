@@ -47,11 +47,17 @@ let td = takedown();
 
 A proxy object for managing instance configuration.
 
-As seen above, configuration values can be set when creating a parser instance, and `config` allows them to be updated directly on the instance.
+Configuration values can be set when creating a parser instance. 
 
 ```js
 let quotation = '<div class="blockquote">{value}</div>';
 
+let td = takedown({ convert: { quotation } });
+```
+
+And `config` allows them to be updated directly on the instance.
+
+```js
 td.config = { convert: { quotation } };
 // or
 td.config.convert = { quotation };
@@ -154,6 +160,10 @@ convert:
         value - inline html content
     */
     html: '{value}',
+    /*
+        value - block html content
+    */
+    htmlblock: '{value}',
     /*
         value - image description
         href - encoded image URL
