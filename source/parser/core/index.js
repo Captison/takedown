@@ -19,7 +19,8 @@ export default function (config)
 
     return source =>
     {
-        let parse = parser({ agentPool, madoe });
+        let id = performance.now().toString(16);
+        let parse = parser({ id, agentPool, madoe });
 
         let content = source;
         // replace insecure character

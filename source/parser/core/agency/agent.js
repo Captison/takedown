@@ -4,9 +4,8 @@ import closer from './closer.js'
 import pruning from './pruning.js'
 
 
-let counter = 100;
 // let spc = (str, ct) => str + ' '.repeat(ct - str.length)
-// let id = model => `${model.type}-${model.name}:${(model.id * 17).toString(32)}`
+// let id = model => `${model.type}-${model.name}:${model.id}`
 // let actionLog = ( parent, model, action, chunk) =>
 // {
 //     let parentId = parent ? id(parent.model) : '';
@@ -45,7 +44,7 @@ export default function ()
             ...ent,
             
             agent: true,
-            id: counter++,
+            id: performance.now().toString(16),
             chunks: [],
             current,
             document: context.document,

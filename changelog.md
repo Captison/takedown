@@ -33,3 +33,4 @@
 
 - added `td.partition` function
 - delouser search/replace added to configuration (undocumented)
+- `id` and `did` (document id) variables added for conversion

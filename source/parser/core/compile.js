@@ -20,6 +20,7 @@ let compile = model =>
     // finally, we must have an object
     if (typeof data === 'object')
     {
+        data.id = model.id; data.did = model.document.id;
         // make sure we have a conversion name
         data.name ||= model.name;
         // no chunks present or raw value present we can return

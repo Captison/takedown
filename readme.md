@@ -300,8 +300,10 @@ Where the `child` insertion variable is available, it will be an object having
 
 Some additional variables are also available for every converter.
 - `name`: converter name
+- `id`: unique hex value for entity within a call to `td.parse`
+- `did`: hex value for the current call to `td.parse` (document)
 - `parent`: parent converter's insertion variables (excluding `value`)
-- `index`: numeric position of the entity in the parent converter
+- `index`: 0-based position of the entity in the parent converter
 
 The values of `parent` and `index` will be undefined for the `root` converter.
 
