@@ -301,7 +301,7 @@ Where the `child` insertion variable is available, it will be an object having
 Some additional variables are also available for every converter.
 - `name`: converter name
 - `id`: unique hex value for entity within a call to `td.parse`
-- `did`: hex value for the current call to `td.parse` (document)
+- `docId`: hex value for the current call to `td.parse`
 - `parent`: parent converter's insertion variables (excluding `value`)
 - `index`: 0-based position of the entity in the parent converter
 

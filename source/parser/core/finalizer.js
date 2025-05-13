@@ -5,51 +5,45 @@ import delouser from './delouser.js'
 export default function (config, inter)
 {
     let delouse = delouser(config, inter);
-
-    let { convert, vars } = config;
     
     let cache = {};
 
     let finalize = (model, parent, index) => 
     {
+        let data = { parent, index };
+
         let compiled = compile(model);
+        let { chunks, ...rest } = compiled;            
 
-        if (compiled)
+        data = { ...data, ...delouse(rest) };
+        // we need to finalize chunks if provided
+        if (((data.value ?? null) === null) && (chunks || chunks === '')) 
         {
-            let { chunks, ...rest } = compiled;            
+            let array = [], list = [].concat(chunks);
 
-            rest = delouse(rest);
-
-            rest.parent = parent;
-            rest.index = index;
-
-            // we need to finalize chunks if provided
-            if (((rest.value ?? null) === null) && (chunks || chunks === '')) 
+            data.child =
             {
-                let array = [], list = [].concat(chunks);
+                count: list.length,
+                first: list.length ? list[0].name || 'text' : void 0,
+                last: list.length ? list[list.length - 1].name || 'text' : void 0 
+            };
 
-                rest.child =
-                {
-                    count: list.length,
-                    first: list.length ? list[0].name || 'text' : void 0,
-                    last: list.length ? list[list.length - 1].name || 'text' : void 0 
-                };
+            list.forEach((chunk, index) => 
+            {
+                let render = chunk.agent ? finalize(chunk, { ...data }, index) : 
+                    delouse({ name: data.name, value: chunk }).value;
+                    
+                if (render) array.push(render);
+            });
 
-                list.forEach((chunk, index) => 
-                {
-                    let render = chunk.agent ? finalize(chunk, { ...rest }, index) : 
-                        delouse({ name: rest.name, value: chunk }).value;
-                        
-                    if (render) array.push(render);
-                });
-
-                rest.value = array.join('');
-            }
-            
-            return (cache[rest.name] ??= inter.toFunc(convert[rest.name]))(rest);
+            data.value = array.join('');
         }
+        
+        let output = (cache[data.name] ??= inter.toFunc(config.convert[data.name]))(data);
 
-        return '';
+        config.onConvert?.({ data, output });
+
+        return output;
     }
 
     return finalize;

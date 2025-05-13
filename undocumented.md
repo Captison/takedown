@@ -162,6 +162,27 @@ nestable:
 Entities do not necessarily map 1-1 with converters.
 
 
+### `onAction`
+
+Sets a function that is called for every parsing step.
+
+The "listener" function will receive an object with:
+- `action`: name of current step
+- `entity`: current entity id, name, and type
+- `parent`: parent id, name, and type
+- `chunk`: target segment being evaluated in this step
+- `index`: index of target segment
+
+
+### `onConvert`
+
+Sets a function that is called after every conversion.  
+
+The "listener" function will receive an object with:
+- `data`: entity variable data
+- `output`: output from the converter
+
+
 ## Extensions
 
 > NOTE: None of this has been implemented yet.

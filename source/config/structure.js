@@ -174,6 +174,18 @@ export default
             '{*}': type.stringArray,
         },
 
+        onAction: (value, name) =>
+        {
+            if (!(typeof value === 'function' || value === null))
+                return `${name} must be a function or null`;
+        },
+
+        onConvert: (value, name) =>
+        {
+            if (!(typeof value === 'function' || value === null))
+                return `${name} must be a function or null`;
+        },
+
         tabSize: type.positive,
 
         vars: 

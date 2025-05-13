@@ -15,7 +15,7 @@ export default function (config)
     let madoe = entitor(config);
     let inter = interpolator(config);
     let finalize = finalizer(config, inter);
-    let agentPool = respool(createAgent);
+    let agentPool = respool(() => createAgent(config));
 
     return source =>
     {

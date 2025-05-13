@@ -4,7 +4,7 @@ import s from '../lib/reparts.js'
 
 
 export default
-{
+{    
     convert:
     {
         autolink: '<a href="{url}">{value}</a>',
@@ -168,6 +168,10 @@ export default
         ],
         setext: [ 'autolink', 'code', 'emphasis', 'html', 'image', 'linebreak', 'link' ]
     },
+
+    onAction: null,
+    
+    onConvert: null,
 
     tabSize: 4,
 

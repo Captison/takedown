@@ -8,7 +8,7 @@
 */
 let compile = model => 
 {
-    let { chunks } = model;
+    let { chunks, document } = model;
 
     let data = model.compile(chunks, model.state);
     // `true` signals to do the default thing
@@ -18,17 +18,13 @@ let compile = model =>
     // pass an array as chunks
     else if (Array.isArray(data)) data = { chunks: data };
     // finally, we must have an object
-    if (typeof data === 'object')
-    {
-        data.id = model.id; data.did = model.document.id;
-        // make sure we have a conversion name
-        data.name ||= model.name;
-        // no chunks present or raw value present we can return
-        if (Object.hasOwn(data, 'value') || !data.chunks) return data;
-        // aggregate content and inline parse 
-        return { ...data, chunks: aggro(data.chunks, model.inliner) }
-    }
-    // no output generated from the model
+    if (typeof data !== 'object') data = {};
+    // set ids and ensure there is a conversion name
+    data.id = model.id; data.docId = document.id; data.name ||= model.name;
+    // no chunks or raw value present we can return
+    if (Object.hasOwn(data, 'value') || !data.chunks) return data;
+    // aggregate content and inline parse 
+    return { ...data, chunks: aggro(data.chunks, model.inliner) }
 }
 
 
