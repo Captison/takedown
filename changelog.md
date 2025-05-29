@@ -4,6 +4,7 @@
 ## Notes
 
 - how to make markdown entities pluggable?
+- header sections
 
 
 ## To Dos
@@ -29,11 +30,16 @@
 - fixed bugs with extensionless imports
 
 
-### v0.0.4
+### v0.1.0
 
 - added `td.partition` function
 - delouser search/replace added to configuration (undocumented)
-- `id` and `docId` variables added for conversion
-- `config.onAction` added for parsing step notification
-- `config.onConvert` added for conversion notification
+- `id` and `meta` variables added for conversion
+- `config.onAction` added for parsing step notification (undocumented)
+- `config.onConvert` added for conversion notification (undocumented)
+- `td.parse` allows `config` to be passed as second parameter
 
+Breaking Changes!
+
+- `td.parse` now returns an object with parsing details
+- exports changed for CJS

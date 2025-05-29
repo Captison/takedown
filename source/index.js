@@ -1,7 +1,6 @@
 import defaults from './config/defaults.js'
 import restrict from './config/restrict.js'
 import structure from './config/structure.js'
-import TakedownError from './error/TakedownError.js'
 import parser from './parser/core/index.js'
 import fmParser from './parse-fm.js'
 

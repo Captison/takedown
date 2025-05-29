@@ -1,6 +1,6 @@
 {
     "name": "takedown",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "description": "Customizable markdown parser",
     "author": "Captison <bdraper@captison.net>",
     "license": "MIT",
@@ -14,7 +14,6 @@
     ],
     "type": "module",
     "types": "dist/takedown.d.ts",
-    "main": "dist/takedown.js",
     "scripts": 
     {
         "build": "rollup --config",
@@ -37,8 +36,9 @@
     },
     "exports": 
     {
-        "import": "./main.js",
-        "require": "./dist/cjs/main.js"
+        ".": "./main.js", 
+        "./cjs": "./dist/cjs/main.js",
+        "./dist/*": "./dist/bundles/*"
     },
     "bin": 
     {
