@@ -55,7 +55,7 @@ export default function (config)
             ...ent,
             
             agent: true,
-            id: performance.now().toString(16),
+            id: performance.now().toString(16).replace('.', ''),
             chunks: [],
             current,
             document: context.document,

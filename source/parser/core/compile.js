@@ -8,7 +8,7 @@
 */
 let compile = model => 
 {
-    let { chunks, document } = model;
+    let { chunks } = model;
 
     let data = model.compile(chunks, model.state);
     // `true` signals to do the default thing
@@ -19,8 +19,8 @@ let compile = model =>
     else if (Array.isArray(data)) data = { chunks: data };
     // finally, we must have an object
     if (typeof data !== 'object') data = {};
-    // set ids and ensure there is a conversion name
-    data.id = model.id; data.docId = document.id; data.name ||= model.name;
+    // ensure there is a conversion name and add document
+    data.name ||= model.name;
     // no chunks or raw value present we can return
     if (Object.hasOwn(data, 'value') || !data.chunks) return data;
     // aggregate content and inline parse 

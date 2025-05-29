@@ -3,8 +3,6 @@ import re from '#lib/re.js'
 
 export default function (config, inter)
 {
-    let { delouse, delousers } = config;
-
     /*
         Makes a replacer function.
     */
@@ -28,7 +26,7 @@ export default function (config, inter)
 
     let makeReps = (name, list = []) =>
     {
-        let spec = delousers[name];
+        let spec = config.delousers[name];
         // for combination delousers (multiple delouse functions)
         if (Array.isArray(spec)) 
             spec.forEach(name => makeReps(name, list));
@@ -43,7 +41,7 @@ export default function (config, inter)
 
     return data =>
     {
-        let { name, ...obj } = { ...data }, spec = delouse[name];
+        let { name, ...obj } = { ...data }, spec = config.delouse[name];
 
         if (spec)
         {

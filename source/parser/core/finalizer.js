@@ -8,43 +8,43 @@ export default function (config, inter)
     
     let cache = {};
 
-    let finalize = (model, parent, index) => 
+    return (root, meta) =>
     {
-        let data = { parent, index };
-
-        let compiled = compile(model);
-        let { chunks, ...rest } = compiled;            
-
-        data = { ...data, ...delouse(rest) };
-        // we need to finalize chunks if provided
-        if (((data.value ?? null) === null) && (chunks || chunks === '')) 
+        let finalize = (model, parent, index) => 
         {
-            let array = [], list = [].concat(chunks);
+            let { chunks, ...rest } = compile(model);            
+            let data = { id: model.id, parent, index, meta, ...delouse(rest) };
 
-            data.child =
+            // we need to finalize chunks if provided
+            if (((data.value ?? null) === null) && (chunks || chunks === '')) 
             {
-                count: list.length,
-                first: list.length ? list[0].name || 'text' : void 0,
-                last: list.length ? list[list.length - 1].name || 'text' : void 0 
-            };
+                let array = [], list = [].concat(chunks);
 
-            list.forEach((chunk, index) => 
-            {
-                let render = chunk.agent ? finalize(chunk, { ...data }, index) : 
-                    delouse({ name: data.name, value: chunk }).value;
-                    
-                if (render) array.push(render);
-            });
+                data.child =
+                {
+                    count: list.length,
+                    first: list.length ? list[0].name || 'text' : void 0,
+                    last: list.length ? list[list.length - 1].name || 'text' : void 0 
+                };
 
-            data.value = array.join('');
+                list.forEach((chunk, index) => 
+                {
+                    let render = chunk.agent ? finalize(chunk, { ...data }, index) : 
+                        delouse({ name: data.name, value: chunk }).value;
+                        
+                    if (render) array.push(render);
+                });
+
+                data.value = array.join('');
+            }
+            
+            let output = (cache[data.name] ??= inter.toFunc(config.convert[data.name]))(data);
+
+            config.onConvert?.({ data, output });
+
+            return output;
         }
-        
-        let output = (cache[data.name] ??= inter.toFunc(config.convert[data.name]))(data);
 
-        config.onConvert?.({ data, output });
-
-        return output;
+        return finalize(root.model);
     }
-
-    return finalize;
 }

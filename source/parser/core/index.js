@@ -17,21 +17,21 @@ export default function (config)
     let finalize = finalizer(config, inter);
     let agentPool = respool(() => createAgent(config));
 
-    return source =>
+    return (source) =>
     {
-        let id = performance.now().toString(16);
-        let parse = parser({ id, agentPool, madoe });
+        let document = { id: performance.now().toString(16).replace('.', ''), refs: {} };
 
-        let content = source;
+        let parse = parser({ document, agentPool, madoe });
+
         // replace insecure character
-        content = content.replace(insecureRe, '&#xfffd;');
+        source = source.replace(insecureRe, '&#xfffd;');
         // replace structural tabs with spaces
-        content = detab(content);
+        source = detab(source);
         // parse document
-        content = parse(content, 'root');
+        let target = parse(source, 'root');
         // render document
-        content = finalize(content.model);
+        target = finalize(target, document);
         
-        return content;
+        return { source, doc: target, meta: document };
     }
 }

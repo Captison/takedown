@@ -4,7 +4,7 @@ import re from "#lib/re.js";
 
 export default function (config)
 {
-    let { interpolation, vars } = config;
+    let { interpolation } = config;
 
     let varis = re.g(interpolation.variables);
     let sects = re.g(interpolation.segments);
@@ -14,7 +14,7 @@ export default function (config)
     {
         str ??= '';
 
-        let reps = { ...vars, ...data };
+        let reps = { ...config.vars, ...data };
         let solve = value => typeof value === 'function' ? value(data) : value
 
         let doVars = str => str.replace(varis, (match, name, def) => solve(op.get(reps, name)) ?? def ?? match)
@@ -33,7 +33,7 @@ export default function (config)
     inter.toFunc = spec =>
     {
         // spec function is called with data and vars
-        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
+        if (typeof spec === 'function') return data => inter(spec(data, config.vars), data);        
         // spec string is directly interpolated
         if (typeof spec === 'string') return data => inter(spec, data)        
         // no output for invalid spec
