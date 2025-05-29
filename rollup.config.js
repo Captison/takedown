@@ -12,10 +12,10 @@ export default
 
     output: 
     [
-        { format: 'umd', file: 'dist/takedown.js', name: 'takedown' },
-        { format: 'umd', file: 'dist/takedown.min.js', name: 'takedown', plugins: [ pluginTerser() ] }, 
-        { format: 'esm', file: 'dist/takedown.esm.js' },
-        { format: 'esm', file: 'dist/takedown.esm.min.js', plugins: [ pluginTerser() ] },
+        { format: 'umd', file: 'dist/bundles/takedown.js', name: 'takedown' },
+        { format: 'umd', file: 'dist/bundles/takedown.min.js', name: 'takedown', plugins: [ pluginTerser() ] }, 
+        { format: 'esm', file: 'dist/bundles/takedown.esm.js' },
+        { format: 'esm', file: 'dist/bundles/takedown.esm.min.js', plugins: [ pluginTerser() ] },
         // unbundled CJS
         { format: 'cjs', dir: 'dist/cjs', preserveModules: true, exports: 'named' } 
     ],  

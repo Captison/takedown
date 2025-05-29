@@ -2,7 +2,7 @@ import iterate from './iterate.js'
 import streamer from './streamer.js'
 
 
-export default function ({ agentPool, madoe })
+export default function ({ document, agentPool, madoe })
 {   
     let inlineParser = ({ name, nestable }) =>
     {
@@ -13,7 +13,7 @@ export default function ({ agentPool, madoe })
         }
     }
 
-    let context = { document: {}, inlineParser, madoe };
+    let context = { document, inlineParser, madoe };
 
     let agenter = context => 
     {

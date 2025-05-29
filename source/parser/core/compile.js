@@ -18,16 +18,13 @@ let compile = model =>
     // pass an array as chunks
     else if (Array.isArray(data)) data = { chunks: data };
     // finally, we must have an object
-    if (typeof data === 'object')
-    {
-        // make sure we have a conversion name
-        data.name ||= model.name;
-        // no chunks present or raw value present we can return
-        if (Object.hasOwn(data, 'value') || !data.chunks) return data;
-        // aggregate content and inline parse 
-        return { ...data, chunks: aggro(data.chunks, model.inliner) }
-    }
-    // no output generated from the model
+    if (typeof data !== 'object') data = {};
+    // ensure there is a conversion name and add document
+    data.name ||= model.name;
+    // no chunks or raw value present we can return
+    if (Object.hasOwn(data, 'value') || !data.chunks) return data;
+    // aggregate content and inline parse 
+    return { ...data, chunks: aggro(data.chunks, model.inliner) }
 }
 
 

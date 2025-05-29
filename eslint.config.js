@@ -9,13 +9,13 @@ export default
         // eslint does not have support for absolute paths
         files: [ path.join('source', '**', '*.js') ],
 
-        // languageOptions: 
-        // {
-        //     globals: 
-        //     {
-        //         MutationObserver: 'readonly'
-        //     }
-        // },    
+        languageOptions: 
+        {
+            globals: 
+            {
+                performance: 'readonly'
+            }
+        },    
 
         rules:
         {

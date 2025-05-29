@@ -55,10 +55,20 @@ let type =
         if (!(value instanceof RegExp || typeof value === 'string'))
             return `${name} must be a regular expression or string`;
     },
+    regexParams: (value, name) =>
+    {
+        if (!(Array.isArray(value) || value instanceof RegExp || typeof value === 'string'))
+            return `${name} must be an array, a regular expression, or a string`;
+    },
     string: (value, name) =>
     {
         if (typeof value !== 'string')
             return `${name} must be a string`;
+    },
+    stringOrFunction: (value, name) =>
+    {
+        if (!(typeof value === 'string' || typeof value === 'function'))
+            return `${name} must be a string or a function`;
     },
     stringArray: (value, name) =>
     {
@@ -130,6 +140,16 @@ export default
             }
         },
 
+        delousers:
+        {
+            '{*}': 
+            {
+                [$validate]: type.stringArray,
+                search: type.regexParams,
+                replace: type.stringOrFunction
+            }
+        },
+
         fm:
         {
             enabled: type.boolean,
@@ -152,6 +172,18 @@ export default
         nestable:
         {
             '{*}': type.stringArray,
+        },
+
+        onAction: (value, name) =>
+        {
+            if (!(typeof value === 'function' || value === null))
+                return `${name} must be a function or null`;
+        },
+
+        onConvert: (value, name) =>
+        {
+            if (!(typeof value === 'function' || value === null))
+                return `${name} must be a function or null`;
         },
 
         tabSize: type.positive,

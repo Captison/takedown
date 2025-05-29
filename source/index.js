@@ -1,59 +1,73 @@
 import defaults from './config/defaults.js'
 import restrict from './config/restrict.js'
 import structure from './config/structure.js'
-import TakedownError from './error/TakedownError.js'
 import parser from './parser/core/index.js'
+import fmParser from './parse-fm.js'
 
 
 let takedown = options =>
 {
-    let parse, changed = true;
-    let td = makeConfig(defaults, options, () => changed = true);
-
-    let getFm = source =>
+    let get = config => 
     {
-        let { fm } = td.config;
+        let { parse, parseFm } = get;
 
-        if (typeof source !== 'string')
-            throw new TakedownError('markdown content must be a string');
-
-        if (fm.enabled && fm.capture.test(source))
-            return source.match(fm.capture);
-    }
-
-    td.parse = source =>
-    {
-        let match = getFm(source);
-        // update parse function if config changed since last call
-        if (changed) (changed = false, parse = parser(td.config));
-
-        let { fm } = td.config, doParse = parse;
-        
-        if (match)
+        if (config)
         {
-            // remove front-matter from source
-            source = source.replace(match[0], '');
+            config = makeIns(td.config, config).config;
+            parse = parser(config);
+            parseFm = fmParser(config.fm);
+        }
+        else if (get.changed ?? true) 
+        {
+            get.parse = parser(td.config);
+            get.parseFm = fmParser(td.config.fm);
+            get.changed = false;
 
-            if (fm.useConfig)
-            {
-                let data = fm.parser(match.groups.fm);
-                // update parser with config from document (if available)
-                if (data)
-                {
-                    if (fm.useConfig !== true) data = data[fm.useConfig];
-                    let config = fm.varsOnly ? { vars: data } : data;
-                    doParse = parser(makeConfig(td.config, config).config);
-                }
-            }
+            ({ parse, parseFm } = get);
         }
 
-        return doParse(source);
+        return { parse, parseFm };
     }
 
-    td.parseMeta = source =>
+    /*
+        Takedown Instance
+        ----------------------------------------
+    */
+    let td = makeIns(defaults, options, () => get.changed = true);
+
+    td.clone = options => makeIns(td.config, options)
+
+    td.parse = (source, config) =>
     {
-        let fm = getFm(source)?.groups.fm;
-        if (fm) return td.config.fm.parser(fm);
+        // create a new local configuration if necessary
+        if (config) config = makeIns(td.config, config).config;
+
+        let parseFm = fmParser((config || td.config).fm), matter;
+        // update source and get front matter (if available)
+        [ source, matter ] = parseFm.parse(source);
+
+        let docConfig = parseFm.getConfig(matter);
+        // update local config with front matter if necessary
+        if (docConfig) config = makeIns(config || td.config, docConfig).config;
+
+        // only if `config` exists do we need to customize `parse`
+        let doParse = config ? parser(config) : get().parse;
+
+        return { ...doParse(source), matter };
+    }
+
+    td.parseMeta = (source, fm) => 
+    {
+        let config = fm ? { fm } : fm;
+        let [ matter ] = get(config).parseFm.parse(source).slice(1);
+        return matter;
+    }
+
+    td.partition = (source, fm) =>
+    {
+        let config = fm ? { fm } : fm;
+        let [ adjusted, result ] = get(config).parseFm.extract(source);
+        return [ adjusted, result?.[0] ];
     }
 
     return td;
@@ -61,7 +75,7 @@ let takedown = options =>
 
 export default takedown;
 
-let makeConfig = (one, two, notify) =>
+let makeIns = (one, two, notify) =>
 {
     let td = restrict(structure, notify);
 

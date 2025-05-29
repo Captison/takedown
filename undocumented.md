@@ -162,9 +162,34 @@ nestable:
 Entities do not necessarily map 1-1 with converters.
 
 
-## Extensions
+### `onAction`
 
-> NOTE: None of this has been implemented yet.
+Sets a function that is called for every parsing step.
+
+The "listener" function will receive an object with:
+- `action`: name of current step
+- `entity`: current entity id, name, and type
+- `parent`: parent id, name, and type
+- `chunk`: target segment being evaluated in this step
+- `index`: index of target segment
+
+
+### `onConvert`
+
+Sets a function that is called after every conversion.  
+
+The "listener" function will receive an object with:
+- `data`: entity variable data
+- `output`: output from the converter
+
+
+## Ideas
+
+This section contains inspired musings (or sloppy brain farts) on future ideas for the parser.
+
+In other words, nothing in here has actually been implemented.
+
+### Extensions
 
 The `extend` method of the Takedown factory object can generate a new, extended factory.
 
@@ -189,3 +214,71 @@ let td = takedown();
 
 [ myExtension, ...exts ].forEach(ext => ext(td.config));
 ```
+
+
+### Header Sections
+
+Headers (h1, h2, ...etc) introduce sections of a document and are generally considered to continue until the next header of the same or higher level occurs.  
+
+But could a "header section" also be cut off by a thematic break?
+
+For instance, the following markdown:
+
+```md
+This content has no level.
+# Header One
+This content is in level 1.
+## Header One One
+This content is in level 1-1.
+---
+This content is in level 1.
+## Header One Two
+This content is in level 1-2.
+## Header One Two One
+This content is in level 1-2-1.
+---
+This content is in level 1-2.
+## Header Two
+This content is in level 2.
+---
+This content has no level.
+# Header Three
+This content is in level 3.
+```
+
+Could be rendered as
+
+```html
+This content has no level.
+<section>
+  <h1>Header One</h1>
+  This content is in level 1.
+  <section>
+    <h2>Header One One</h2>
+    This content is in level 1-1.
+  </section>
+  This content is in level 1.
+  <section>
+    <h2>Header One Two</h2>
+    This content is in level 1-2.
+    <section>
+      <h3>Header One Two One</h3>
+      This content is in level 1-2-1.
+    </section>
+    This content is in level 1-2.
+  </section>
+</section>
+<section>
+  <h1>Header Two</h1>
+  This content is in level 2.
+</section>
+This content has no level.
+<section>
+  <h1>Header Three</h1>
+  This content is in level 3.
+</section>
+```
+
+Obviously, a thematic break would have to be recognized as ending a header section and have its output suppressed.  
+
+But perhaps there needs to be different block markers used altogether???

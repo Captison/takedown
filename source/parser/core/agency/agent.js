@@ -4,17 +4,9 @@ import closer from './closer.js'
 import pruning from './pruning.js'
 
 
-let counter = 100;
-// let spc = (str, ct) => str + ' '.repeat(ct - str.length)
-// let id = model => `${model.type}-${model.name}:${(model.id * 17).toString(32)}`
-// let actionLog = ( parent, model, action, chunk) =>
-// {
-//     let parentId = parent ? id(parent.model) : '';
-//     let chunkId = chunk && `${chunk.id}:${chunk.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⤇')}`;
-//     console.log('๏', spc(parentId, 21), '๏', spc(id(model), 21), '๏', spc(String(action), 8), '๏', chunkId);
-// }
+let edata = ({ name, type, id }) => ({ name, type, id })
 
-export default function ()
+export default function (config)
 {
     let self = { agent: true }, parent, model;
     // parsing context elements
@@ -27,6 +19,24 @@ export default function ()
     let getPruning = pruning(self);
     // agent entity close handler
     let close = closer(self);
+
+    let actionLog = (action, chunk) =>
+    {
+        if (config.onAction)
+        {
+            let details =
+            {
+                action: String(action),
+                entity: edata(model),
+                chunk: chunk.toString(),
+                index: chunk.index,
+            };
+
+            if (parent) details.parent = edata(parent.model);
+
+            config.onAction(details);
+        }
+    }
 
 
     self.initialize = (context, entity, branch) =>
@@ -45,7 +55,7 @@ export default function ()
             ...ent,
             
             agent: true,
-            id: counter++,
+            id: performance.now().toString(16).replace('.', ''),
             chunks: [],
             current,
             document: context.document,
@@ -211,7 +221,7 @@ export default function ()
             if (action.value === true) action.value = chunk;
         }
 
-        // actionLog(parent, model, action, chunk);
+        actionLog(action, chunk);
 
         // continue and look for children
         if (action.accept) return spawn(chunk) || apply(chunk, action.value);

@@ -1,5 +1,5 @@
+import respool from '#lib/resource-pool.js'
 import createAgent from './agency/agent.js'
-import respool from '../lib/resource-pool.js'
 import detabber from './detabber.js'
 import entitor from './entitor/index.js'
 import finalizer from './finalizer.js'
@@ -15,22 +15,23 @@ export default function (config)
     let madoe = entitor(config);
     let inter = interpolator(config);
     let finalize = finalizer(config, inter);
-    let agentPool = respool(createAgent);
+    let agentPool = respool(() => createAgent(config));
 
-    return source =>
+    return (source) =>
     {
-        let parse = parser({ agentPool, madoe });
+        let document = { id: performance.now().toString(16).replace('.', ''), refs: {} };
 
-        let content = source;
+        let parse = parser({ document, agentPool, madoe });
+
         // replace insecure character
-        content = content.replace(insecureRe, '&#xfffd;');
+        source = source.replace(insecureRe, '&#xfffd;');
         // replace structural tabs with spaces
-        content = detab(content);
+        source = detab(source);
         // parse document
-        content = parse(content, 'root');
+        let target = parse(source, 'root');
         // render document
-        content = finalize(content.model);
+        target = finalize(target, document);
         
-        return content;
+        return { source, doc: target, meta: document };
     }
 }

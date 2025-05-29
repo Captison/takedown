@@ -18,7 +18,7 @@ import or require...
 ```js
 import takedown from 'takedown'
 // or, for commonjs
-let takedown = require('takedown').default
+let takedown = require('takedown/cjs').default
 ```
 
 and then...
@@ -28,7 +28,7 @@ let markdown = 'Your markdown *here*!';
 // create an "instance"
 let td = takedown();
 // make some HTML!
-let html = td.parse(markdown);
+let html = td.parse(markdown).doc;
 // => <p>Your markdown <em>here</em>!</p>
 ```
 
@@ -42,6 +42,11 @@ The following sections detail the api for a takedown parser instance.
 ```js
 let td = takedown();
 ```
+
+### `td.clone(config: object): object`
+
+Returns a copy of the Takedown instance, optionally merging `config` atop the current configuration.
+
 
 ### `td.config: object`
 
@@ -67,30 +72,80 @@ td.config.convert.quotation = quotation;
 
 All of the update methods above have the same effect (i.e., only `config.convert.quotation` setting is affected and previous defaults/changes remain in place).  Errors are thrown for bad config settings.
 
-The config options are detailed further down.
+All the config options are detailed later in this document.
 
-### `td.parse(markdown: string): string`
 
-Where all the magic happens.  This function takes `markdown` and converts it to HTML (or whatever document structure is configured).
+### `td.parse(markdown: string, config: object): object`
+
+Where all the magic happens - takes `markdown` and converts it to HTML (or whatever document structure is configured).
+
+Use `config` to set local options that will be merged atop current instance defaults.
 
 ```js
-let html = td.parse('Welcome to **Takedown**!');
+let html = td.parse('Welcome to **Takedown**!').doc;
 // => <p>Welcome to <strong>Takedown</strong>!</p>
 ```
 
-The output of this function is dependent on entity converters. (see `convert` config option).
+The returned object will have
+- `doc`: the document produced by the converters
+- `source`: the original markdown provided (almost - see below)
+- `matter`: parsed front-matter (if `fm.enabled` and present in document)
+- `meta`: data accumulated from the parsing process
 
-### `td.parseMeta(markdown: string): object`
+Metadata (`meta`) will include:
+- `id`: unique timestamp-based hex value for the document
+- `refs`: link reference data parsed from the document
 
-Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is false.
+> Note that `source` might be slightly different than the original `markdown` provided due to the removal of insecure characters (U+0000) and the replacement of structural tab characters with spaces.
+
+
+### `td.parseMeta(markdown: string, fm: object): object`
+
+Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is `false`.
+
+Use `fm` to set local options that will be merged atop `config.fm` instance defaults.
 
 ```js
-let td = takedown({ fm: { enabled: true } });
+td.config.fm.enabled = true;
 // front-matter is parsed as JSON by default
 let fm = td.parseMeta(markdown);
 ```
 
 See the `fm` config option for more details on how front-matter is handled.
+
+
+### `td.partition(markdown: string, fm: object): array`
+
+Returns unparsed markdown content and front matter as separated via `fm.capture` in an array.
+
+Use `fm` to set local options that will be merged atop `config.fm` instance defaults.
+
+If you do
+
+```js
+let [ source, matter ] = td.partition(`
+---
+title: Markdown Page
+---
+# First Header Element
+`);
+```
+
+then `source` would be
+
+```md
+# First Header Element
+```
+
+and `matter` would be
+
+```md
+---
+title: Markdown Page
+---
+```
+
+When not `fm.enabled`, `matter` is `undefined` and `source` is returned as-is.
 
 
 ## What are the config options?
@@ -99,7 +154,7 @@ See the `fm` config option for more details on how front-matter is handled.
 
 Strings and/or functions that specify how markdown entities are converted to document structure. 
 
-A string will be interpolated using insertion variables (as per `What is "string conversion"?` section below).
+A string will be interpolated using insertion variables (as per *What is \"string conversion\"?* section below).
 
 A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
@@ -241,7 +296,7 @@ convert:
 
 **All** of the target document structure is defined in the `convert` settings.
 
-Use only `{value}` to render without formatting.
+Use only `{value}` to render unstructured.
 
 ```js
 // no header tags!
@@ -252,7 +307,7 @@ Omit `{value}` to suppress descendant output.
 
 ```js
 // no header content!
-td.config.convert = { header: '<h{level}> no header content </h{level}>\n' }
+td.config.convert = { header: '<h{level}></h{level}>\n' }
 ```
 
 Set to `null` or empty string to turn off output completely.
@@ -264,13 +319,15 @@ td.config.convert = { header: null }
 
 Where the `child` insertion variable is available, it will be an object having
 - `count`: number of child entities (including text nodes)
-- `first`: converter name of the first child (or `text` for text node)
-- `last`: converter name of the last child (or `text` for text node)
+- `first`: converter name of the first child (or "text" for text node)
+- `last`: converter name of the last child (or "text" for text node)
 
 Some additional variables are also available for every converter.
-- `name`: converter name
+- `name`: the converter name
+- `id`: unique timestamp-based hex value for entity
+- `meta`: the same object returned from `td.parse`
 - `parent`: parent converter's insertion variables (excluding `value`)
-- `index`: numeric position of the entity in the parent converter
+- `index`: 0-based position in the parent converter
 
 The values of `parent` and `index` will be undefined for the `root` converter.
 
@@ -300,10 +357,12 @@ Here's a rundown of the individual `fm` settings:
   The regular expression to match front-matter.  It must have an `<fm>` capture group as its contents will be passed to the `parser` function.
 
 - **`parser`** (*function*) \
-  Document content from `capture` is passed to this function for parsing.  It should return an object with document metadata.
+  Content from `capture` is passed to this function.  It should return an object with parsed data or a nullish value.
 
 - **`useConfig`** (*boolean|string*) \
-  Names a key in front-matter containing additional config options for the document.  These options will be merged atop defaults and any manually set options.  A value of `true` indicates the front-matter itself is config options.  Use `false` to turn this off completely.
+  Names a key in front-matter containing additional config options for the document.  These options will be merged atop instance defaults and any manually set options (including those passed to `td.parse`).  
+  
+  Set to `true` to indicate the front-matter itself *is* config options.  Use `false` to turn this off completely.
 
 - **`varsOnly`** (*boolean*) \
   When set to `true`, front-matter configuration is assumed to consist solely of variable (`vars`) definitions, and will be merged accordingly.  Has no effect if `useConfig` is `false`.
@@ -334,7 +393,8 @@ convert:
 }
 ```
 
-To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  However, functional converters will have to invoke function variables manually.
+**Dynamic Variables** \
+To make a "dynamic" variable, use a function.  Functions will be called with the current converter's insertion variables in string conversion.  Functional converters will have to invoke a function variable directly.
 
 
 ## What is "string conversion"?
@@ -348,10 +408,35 @@ There are two facets here:
 
   To ensure replacement, use `{name??text}` syntax where `text` is the literal value to use when `name` is nullish.
 
+  If a `name` is found in both entity data and `vars`, it is the entity data value that will be used in string conversion.  A conversion function would need to be used in order to see both values.
+
 - **segments** \
   Use `{?content?}` syntax to identify an optional portion (segment) of the string where `content` will only be rendered if at least one internal variable is replaced.  That is, if variable replacement within `content` results in the exact same string, the entire segment will be omitted.  
 
   Nested segments are processed inside-out, with the results of inner segments constituting the initial state of outer ones.
+
+
+## Got any usage tips?
+
+Yes!
+
+### Local Insertion Variables
+
+The string returned from a function converter also gets interpolated for variables and segments.  In the function,  properties can be added to `data` (first parameter) and those will also be available for interpolation.
+
+### Metadata Accumulator
+
+Use `data.meta` object in a function converter to capture information across the parsing run.  It could be used by the header converter to build a TOC for the document, for example. 
+
+### Configure Efficiently
+
+A configuration change on an instance (`td`) causes it to internally be flagged to be "rebuilt" on the next `parse` call.
+
+When converting lots of documents with distinct configuration needs, it will be more performant to configure a separate instance for each document group rather than configuring a single instance on a per-document basis. 
+
+Internally, when options are passed directly to an instance method, or when front-matter is allowed to inform the configuration, the instance is cloned before parsing begins, and this can have the same potential performance hit.
+
+Hopefully, this can be mitigated somewhat in a future release :wink:
 
 
 ## What else do I need to know?
@@ -376,7 +461,7 @@ The test runner will download the [test-cases](https://spec.commonmark.org/0.31.
 
 Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
 
-There are many more config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
+There are many config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
 
 
 ## Final Notes

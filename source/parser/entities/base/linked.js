@@ -1,6 +1,6 @@
 import res from '../../lib/action-response.js'
-import normalize from '../../lib/normalize-label.js'
-import s from '../../lib/reparts.js'
+import normalize from '#lib/normalize-label.js'
+import s from '#lib/reparts.js'
 
 
 /*

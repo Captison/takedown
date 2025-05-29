@@ -4,31 +4,23 @@ import delouser from './delouser.js'
 
 export default function (config, inter)
 {
-    let delouse = delouser(config);
-
-    let { convert, vars } = config;
+    let delouse = delouser(config, inter);
     
     let cache = {};
 
-    let finalize = (model, parent, index) => 
+    return (root, meta) =>
     {
-        let compiled = compile(model);
-
-        if (compiled)
+        let finalize = (model, parent, index) => 
         {
-            let { chunks, ...rest } = compiled;            
-
-            rest = delouse(rest);
-
-            rest.parent = parent;
-            rest.index = index;
+            let { chunks, ...rest } = compile(model);            
+            let data = { id: model.id, parent, index, meta, ...delouse(rest) };
 
             // we need to finalize chunks if provided
-            if (((rest.value ?? null) === null) && (chunks || chunks === '')) 
+            if (((data.value ?? null) === null) && (chunks || chunks === '')) 
             {
                 let array = [], list = [].concat(chunks);
 
-                rest.child =
+                data.child =
                 {
                     count: list.length,
                     first: list.length ? list[0].name || 'text' : void 0,
@@ -37,30 +29,22 @@ export default function (config, inter)
 
                 list.forEach((chunk, index) => 
                 {
-                    let render = chunk.agent ? finalize(chunk, { ...rest }, index) : 
-                        delouse({ name: rest.name, value: chunk }).value;
+                    let render = chunk.agent ? finalize(chunk, { ...data }, index) : 
+                        delouse({ name: data.name, value: chunk }).value;
                         
                     if (render) array.push(render);
                 });
 
-                rest.value = array.join('');
+                data.value = array.join('');
             }
             
-            return (cache[rest.name] ??= toFunc(convert[rest.name]))(rest);
+            let output = (cache[data.name] ??= inter.toFunc(config.convert[data.name]))(data);
+
+            config.onConvert?.({ data, output });
+
+            return output;
         }
 
-        return '';
+        return finalize(root.model);
     }
-
-    let toFunc = spec =>
-    {
-        // converter function for document entity
-        if (typeof spec === 'function') return data => inter(spec(data, vars), data);        
-        // string interpolation for document entity
-        if (typeof spec === 'string') return data => inter(spec, data)        
-        // suppress output for document entity
-        return () => ''
-    }
-
-    return finalize;
 }
