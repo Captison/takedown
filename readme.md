@@ -168,34 +168,48 @@ Here are the defaults with insertion variable names explained:
 convert:
 {
     /*
+        Automatic hyperlink (inline).
+
         value - display URL
         url - encoded URL
     */
     autolink: '<a href="{url}">{value}</a>',
     /*
+        Code span (inline).
+
         value - inline code text
         ticks - opening ticks
     */
     code: '<code>{value}</code>',
     /*
+        Indented code block (block).
+
         value - code block source
     */
     codeblock: '<pre><code>{value}</code></pre>\n',
     /*
-        marks - symbols used for thematic break
+        Thematic break (block).
+
+        marks - symbols used for break
     */
     divide: '<hr />\n',
     /*
+        Email address (inline).
+
         value - email address
         email - email address
     */
     email: '<a href="mailto:{email}">{value}</a>',
     /*
+        Emphasis (inline).
+
         value - emphasis text
         child - child data
     */
     emphasis: '<em>{value}</em>',
     /*
+        Fenced code block (block).
+
         value - fence block source
         info - fence block info-string
         fence - opening ticks
@@ -206,20 +220,28 @@ convert:
         return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
     },
     /*
+        ATX Header (block).
+
         value - header tag content
         level - header level (1-6)
         child - child data
     */
     header: '<h{level}>{value}</h{level}>\n',
     /*
+        HTML (inline).
+
         value - inline html content
     */
     html: '{value}',
     /*
+        HTML block (block).
+
         value - block html content
     */
     htmlblock: '{value}',
     /*
+        Image (inline).
+
         value - image description
         href - encoded image URL
         title - image description
@@ -231,10 +253,14 @@ convert:
         return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
     },
     /*
+        Hard line break (inline).
+
         nada.
     */
     linebreak: '<br />',
     /*
+        Hyperlink (inline).
+
         value - link text
         href - encoded link URL
         title - link description
@@ -242,6 +268,8 @@ convert:
     */
     link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
     /*
+        List item (block).
+
         value - list item content
         tight - should paragraphs be suppressed?
         child - child data
@@ -252,6 +280,8 @@ convert:
         return '<li>{nl}{value}</li>\n';
     },
     /*
+        Ordered list (block).
+
         value - list content
         start - starting index
         tight - should paragraphs be suppressed?
@@ -259,33 +289,45 @@ convert:
     */
     olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
     /*
+        Paragraph (block).
+
         value - paragraph content
         child - child data
     */
     paragraph: ({ parent: p, index }) => 
         p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
     /*
+        Blockquote (block).
+
         value - block quote content
         child - child data
     */
     quotation: '<blockquote>\n{value}</blockquote>\n',
     /*
+        Document root (block).
+
         value - entire document output
         child - child data
     */
     root: '{value}',
     /*
+        Setext Header (block).
+
         value - setext header tag content
         level - setext header level (1-2)
         child - child data
     */
     setext: '<h{level}>{value}</h{level}>\n',
     /*
+        Strong emphasis (inline).
+
         value - strong emphasis text
         child - child data
     */
     strong: '<strong>{value}</strong>',
     /*
+        Unordered list (block).
+
         value - list content
         tight - should paragraphs be suppressed?
         child - child data

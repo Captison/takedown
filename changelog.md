@@ -14,20 +14,10 @@
 
 
 ---
-### v0.0.1
+### v0.1.1
 
-- initial release!
-
-
-### v0.0.2
-
-- readme updates ad error fixes
-- package.json adds 'md' keyword
-
-
-### v0.0.3
-
-- fixed bugs with extensionless imports
+- github action to build and produce bundled artifacts
+- fixed the test html page
 
 
 ### v0.1.0
@@ -43,3 +33,19 @@ Breaking Changes!
 
 - `td.parse` now returns an object with parsing details
 - exports changed for CJS
+
+
+### v0.0.3
+
+- fixed bugs with extensionless imports
+
+
+### v0.0.2
+
+- readme updates ad error fixes
+- package.json adds 'md' keyword
+
+
+### v0.0.1
+
+- initial release!
