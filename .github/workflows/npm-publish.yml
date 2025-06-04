@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       - name: test code
         run: npm test
+      - name: build code
+        run: npm run build
       - name: publish
         run: npm publish
         env:

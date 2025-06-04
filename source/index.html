@@ -6,7 +6,7 @@
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>Takedown Tester</title>
   <link rel="icon" type="image/x-icon" href="logo-initial.png">
-  <script src='takedown.min.js'></script>
+  <script src='bundles/takedown.min.js'></script>
   <script src="https://unpkg.com/js-yaml@latest"></script>
   <style>
     html, body 
@@ -165,7 +165,7 @@
     {
         try
         {
-            main.innerHTML = td.parse(value);
+            main.innerHTML = td.parse(value).doc;
             doHighlight();
         }
         catch (e) { console.log(e); }
