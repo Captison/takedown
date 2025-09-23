@@ -37,18 +37,26 @@ Simple!
 
 ## What's the API here?
 
-The following sections detail the api for a takedown parser instance.
+This section details the api for a takedown parser instance.
 
 ```js
 let td = takedown();
 ```
 
-### `td.clone(config: object): object`
+### clone
+
+```js
+td.clone(config: object): object
+```
 
 Returns a copy of the Takedown instance, optionally merging `config` atop the current configuration.
 
 
-### `td.config: object`
+### config
+
+```js
+td.config: object
+```
 
 A proxy object for managing instance configuration.
 
@@ -75,7 +83,11 @@ All of the update methods above have the same effect (i.e., only `config.convert
 All the config options are detailed later in this document.
 
 
-### `td.parse(markdown: string, config: object): object`
+### parse
+
+```js
+td.parse(markdown: string, config: object): object
+```
 
 Where all the magic happens - takes `markdown` and converts it to HTML (or whatever document structure is configured).
 
@@ -99,7 +111,11 @@ Metadata (`meta`) will include:
 > Note that `source` might be slightly different than the original `markdown` provided due to the removal of insecure characters (U+0000) and the replacement of structural tab characters with spaces.
 
 
-### `td.parseMeta(markdown: string, fm: object): object`
+### parseMeta
+
+```js
+td.parseMeta(markdown: string, fm: object): object
+```
 
 Gets front-matter from a document as object data.  Returns `undefined` if `fm.enabled` is `false`.
 
@@ -114,7 +130,11 @@ let fm = td.parseMeta(markdown);
 See the `fm` config option for more details on how front-matter is handled.
 
 
-### `td.partition(markdown: string, fm: object): array`
+### partition
+
+```js
+td.partition(markdown: string, fm: object): array
+```
 
 Returns unparsed markdown content and front matter as separated via `fm.capture` in an array.
 
@@ -411,6 +431,30 @@ Here's a rundown of the individual `fm` settings:
 
 > For obvious reasons, `fm` settings appearing in front-matter are ignored.
 
+
+### `refs`
+
+Pre-loaded link references.
+
+This setting takes the following form:
+
+```js
+refs:
+{
+    [label]:
+    {
+        title: string,
+        url: string
+    },
+    ...
+}
+```
+
+Each entry in `refs` is a markdown [link reference](https://spec.commonmark.org/0.31.2/#link-reference-definitions) identified by a `label` (*link label*) and having a `title` (*link title*) and a `url` (*link destination*).
+
+This convenience allows for the use of a set of references across multiple documents.
+
+
 ### `vars`
 
 Insertion variables used in string conversion or passed to conversion functions.
@@ -508,7 +552,7 @@ There are many config options not documented here, but please note that those an
 
 ## Final Notes
 
-Originally, Takedown was built to accomodate **ACID** (Another Component Interface Documenter - not yet released) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
+Originally, Takedown was built to accomodate **ACID** (A Component Interface Documenter - nearing release!) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
 
 As an acknowledgement, this project was initially inspired by [this article](https://medium.com/better-programming/create-your-own-markdown-parser-bffb392a06db) during the search for the markdown parser of my dreams. :smile:
 

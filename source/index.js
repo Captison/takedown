@@ -1,6 +1,6 @@
+import confine from '#lib/confine/index.js'
 import defaults from './config/defaults.js'
-import restrict from './config/restrict.js'
-import structure from './config/structure.js'
+import definition from './config/definition.js'
 import parser from './parser/core/index.js'
 import fmParser from './parse-fm.js'
 
@@ -77,7 +77,7 @@ export default takedown;
 
 let makeIns = (one, two, notify) =>
 {
-    let td = restrict(structure, notify);
+    let td = confine(definition, (apply, value) => (apply(value), notify?.()));
 
     td.config = one || {};
     td.config = two || {};

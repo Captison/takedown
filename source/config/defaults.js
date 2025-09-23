@@ -173,6 +173,8 @@ export default
     
     onConvert: null,
 
+    refs: {},
+
     tabSize: 4,
 
     vars: {}
