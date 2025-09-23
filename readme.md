@@ -5,6 +5,8 @@
 
 The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure without going through an AST.
 
+**[Try it out!](https://captison.github.io/takedown/)**
+
 ## How do I use this?
 
 Install.
