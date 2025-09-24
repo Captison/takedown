@@ -10,6 +10,7 @@ let test =
     functionOrStringOrNull: h => h.or(h.null, h.string, h.func) || h.err('must be a function or a string or null'),
     object: h => h.plain || h.err('must be an object'),
     objectOrArray: fn => h => h.or(h.array, h.plain) ? h.to(fn) : h.err('must be an object or an array'),
+    objectOrString: fn => h => h.or(h.string, h.plain) ? h.to(fn) : h.err('must be an object or a string'),
     positiveOrNull: h => h.or(h.null, h.and(h.number, h.gte(1))) || h.err('must be a positive integer or null'),
     regex: h => h.of(RegExp) || h.err('must be a regular expression'),
     regexOrString: h => h.or(h.of(RegExp), h.string) || h.err('must be a regular expression or a string'),
@@ -78,11 +79,10 @@ export default
     'config.onAction': test.functionOrNull,
     'config.onConvert': test.functionOrNull,
     'config.refs': { test: test.object, default: {}, merge: true },
-    'config.refs.*': test.object,
+    'config.refs.*': test.objectOrString(f => f.string({ url: f.value })),
     'config.refs.*.*': test.unset,
     'config.refs.*.title': test.string,
     'config.refs.*.url': test.string,
     'config.tabSize': test.positiveOrNull,
-    'config.vars': { test: test.object, default: {}, merge: true },
-    'config.vars.*': test.function
+    'config.vars': { test: test.object, default: {}, merge: true }
 }

@@ -146,15 +146,18 @@ export default function (prints, assign)
 
         let final = value = is.func(result) ? result() : value;
 
-        if (is.plain(value))
-        {                    
-            final = (merge && target[prop]) || proxer({}, at);
-            Object.keys(value).forEach(k => final[k] = value[k]);
-        }                
-        else if (is.array(value))
+        if (prints[at.path])
         {
-            final = (merge && target[prop]) || proxer([], at);
-            final.push(...value);
+            if (is.plain(value))
+            {                    
+                final = (merge && target[prop]) || proxer({}, at);
+                Object.keys(value).forEach(k => final[k] = value[k]);
+            }                
+            else if (is.array(value))
+            {
+                final = (merge && target[prop]) || proxer([], at);
+                final.push(...value);
+            }
         }
 
         return final;
