@@ -31,13 +31,18 @@ export default
 
     setRef(label, state)
     {
-        let ref = this.document.refs?.[normalize(label || '')];
+        label = normalize(label || '');
+
+        let { globalRefs, refs } = this.document;
+        let ref = refs?.[label] || globalRefs?.[label];
+
         if (ref)
         {
             state.url = ref.url;
             state.title = ref.title;    
             return true;
         }
+        
         return false;
     },
 

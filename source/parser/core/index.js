@@ -19,7 +19,7 @@ export default function (config)
 
     return (source) =>
     {
-        let document = { id: performance.now().toString(16).replace('.', ''), refs: { ...config.refs } };
+        let document = { id: performance.now().toString(16).replace('.', ''), refs: {}, globalRefs: config.refs };
 
         let parse = parser({ document, agentPool, madoe });
 

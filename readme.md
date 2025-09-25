@@ -109,6 +109,7 @@ The returned object will have
 Metadata (`meta`) will include:
 - `id`: unique timestamp-based hex value for the document
 - `refs`: link reference data parsed from the document
+- `globalRefs`: link reference data set as `refs` config option
 
 > Note that `source` might be slightly different than the original `markdown` provided due to the removal of insecure characters (U+0000) and the replacement of structural tab characters with spaces.
 
@@ -184,178 +185,298 @@ A function should be of the form `(data: object, vars: object): string` where
 
 Strings returned from converter functions will also be interpolated.
 
-Here are the defaults with insertion variable names explained:
+Here are the converters with default values and their insertion variables:
+
+
+#### autolink
 
 ```js
-convert:
+/*
+    Automatic hyperlink (inline).
+
+    - value: display URL
+    - url: encoded URL
+*/
+autolink: '<a href="{url}">{value}</a>'
+```
+
+
+#### code
+
+```js
+/*
+    Code span (inline).
+    
+    - value: code text
+    - ticks: opening ticks
+*/
+code: '<code>{value}</code>'
+```
+
+
+#### codeblock
+
+```js
+/*
+    Indented code block (block).
+
+    - value: code block source
+*/
+codeblock: '<pre><code>{value}</code></pre>\n'
+```
+
+
+#### divide
+
+```js
+/*
+    Thematic break (block).
+
+    - marks: symbols used for break
+*/
+divide: '<hr />\n',
+```
+
+
+#### email
+
+```js
+/*
+    Email address (inline).
+
+    - value: email address
+    - email: email address
+*/
+email: '<a href="mailto:{email}">{value}</a>',
+```
+
+
+#### emphasis
+
+```js
+/*
+    Emphasis (inline).
+
+    - value: emphasis text
+    - child: child data
+*/
+emphasis: '<em>{value}</em>'
+```
+
+
+#### fenceblock
+
+```js
+/*
+    Fenced code block (block).
+
+    - value: source content
+    - info: info-string
+    - fence: opening ticks
+*/
+fenceblock: e =>
 {
-    /*
-        Automatic hyperlink (inline).
-
-        value - display URL
-        url - encoded URL
-    */
-    autolink: '<a href="{url}">{value}</a>',
-    /*
-        Code span (inline).
-
-        value - inline code text
-        ticks - opening ticks
-    */
-    code: '<code>{value}</code>',
-    /*
-        Indented code block (block).
-
-        value - code block source
-    */
-    codeblock: '<pre><code>{value}</code></pre>\n',
-    /*
-        Thematic break (block).
-
-        marks - symbols used for break
-    */
-    divide: '<hr />\n',
-    /*
-        Email address (inline).
-
-        value - email address
-        email - email address
-    */
-    email: '<a href="mailto:{email}">{value}</a>',
-    /*
-        Emphasis (inline).
-
-        value - emphasis text
-        child - child data
-    */
-    emphasis: '<em>{value}</em>',
-    /*
-        Fenced code block (block).
-
-        value - fence block source
-        info - fence block info-string
-        fence - opening ticks
-    */
-    fenceblock: e =>
-    {
-        e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-        return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
-    },
-    /*
-        ATX Header (block).
-
-        value - header tag content
-        level - header level (1-6)
-        child - child data
-    */
-    header: '<h{level}>{value}</h{level}>\n',
-    /*
-        HTML (inline).
-
-        value - inline html content
-    */
-    html: '{value}',
-    /*
-        HTML block (block).
-
-        value - block html content
-    */
-    htmlblock: '{value}',
-    /*
-        Image (inline).
-
-        value - image description
-        href - encoded image URL
-        title - image description
-        child - child data
-    */
-    image: e =>
-    {
-        e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-        return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
-    },
-    /*
-        Hard line break (inline).
-
-        nada.
-    */
-    linebreak: '<br />',
-    /*
-        Hyperlink (inline).
-
-        value - link text
-        href - encoded link URL
-        title - link description
-        child - child data
-    */
-    link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
-    /*
-        List item (block).
-
-        value - list item content
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    listitem: e =>
-    {
-        e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
-        return '<li>{nl}{value}</li>\n';
-    },
-    /*
-        Ordered list (block).
-
-        value - list content
-        start - starting index
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
-    /*
-        Paragraph (block).
-
-        value - paragraph content
-        child - child data
-    */
-    paragraph: ({ parent: p, index }) => 
-        p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
-    /*
-        Blockquote (block).
-
-        value - block quote content
-        child - child data
-    */
-    quotation: '<blockquote>\n{value}</blockquote>\n',
-    /*
-        Document root (block).
-
-        value - entire document output
-        child - child data
-    */
-    root: '{value}',
-    /*
-        Setext Header (block).
-
-        value - setext header tag content
-        level - setext header level (1-2)
-        child - child data
-    */
-    setext: '<h{level}>{value}</h{level}>\n',
-    /*
-        Strong emphasis (inline).
-
-        value - strong emphasis text
-        child - child data
-    */
-    strong: '<strong>{value}</strong>',
-    /*
-        Unordered list (block).
-
-        value - list content
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    ulist: '<ul>\n{value}</ul>\n'
+    e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+    return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
 }
+```
+
+
+#### header
+
+```js
+/*
+    ATX Header (block).
+
+    - value: text content
+    - level: header level (1-6)
+    - child: child data
+*/
+header: '<h{level}>{value}</h{level}>\n'
+```
+
+
+#### html
+
+```js
+/*
+    HTML markup (inline).
+
+    - value: html content
+*/
+html: '{value}'
+```
+
+
+#### htmlblock
+
+```js
+/*
+    HTML markup (block).
+
+    - value: html content
+*/
+htmlblock: '{value}'
+```
+
+
+#### image
+
+```js
+/*
+    Image (inline).
+
+    - value: image description
+    - href: encoded image URL
+    - title: image description
+    - child: child data
+*/
+image: e =>
+{
+    e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+    return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
+}
+```
+
+
+#### linebreak
+
+```js
+/*
+    Hard line break (inline).
+
+    nada.
+*/
+linebreak: '<br />'
+```
+
+
+#### link
+
+```js
+/*
+    Hyperlink (inline).
+
+    - value: link text
+    - href: encoded link URL
+    - title: link description
+    - child: child data
+*/
+link: '<a href="{href??}"{? title="{title}"?}>{value}</a>'
+```
+
+
+#### listitem
+
+```js
+/*
+    List item (block).
+
+    - value: list item content
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+listitem: e =>
+{
+    e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
+    return '<li>{nl}{value}</li>\n';
+}
+```
+
+
+#### olist
+
+```js
+/*
+    Ordered list (block).
+
+    - value: list content
+    - start: starting index
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`
+```
+
+
+#### paragraph
+
+```js
+/*
+    Paragraph (block).
+
+    - value: paragraph content
+    - child: child data
+*/
+paragraph: ({ parent: p, index }) => 
+    p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n'
+```
+
+
+#### quotation
+
+```js
+/*
+    Blockquote (block).
+
+    - value: text content
+    - child: child data
+*/
+quotation: '<blockquote>\n{value}</blockquote>\n'
+```
+
+
+#### root
+
+```js
+/*
+    Document root (block).
+
+    - value: entire document output
+    - child: child data
+*/
+root: '{value}'
+```
+
+
+#### setext
+
+```js
+/*
+    Setext Header (block).
+
+    - value: setext header tag content
+    - level: setext header level (1-2)
+    - child: child data
+*/
+setext: '<h{level}>{value}</h{level}>\n'
+```
+
+
+#### strong
+
+```js
+/*
+    Strong emphasis (inline).
+
+    - value: text content
+    - child: child data
+*/
+strong: '<strong>{value}</strong>'
+```
+
+
+#### ulist
+
+```js
+/*
+    Unordered list (block).
+
+    - value: list content
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+ulist: '<ul>\n{value}</ul>\n'
 ```
 
 **All** of the target document structure is defined in the `convert` settings.
@@ -436,7 +557,7 @@ Here's a rundown of the individual `fm` settings:
 
 ### `refs`
 
-Pre-loaded link references.
+Global link reference definitions.
 
 This setting takes the following form:
 
@@ -452,9 +573,13 @@ refs:
 }
 ```
 
-Each entry in `refs` is a markdown [link reference](https://spec.commonmark.org/0.31.2/#link-reference-definitions) identified by a `label` (*link label*) and having a `title` (*link title*) and a `url` (*link destination*).
+Each entry in `refs` is a markdown [link reference definition](https://spec.commonmark.org/0.31.2/#link-reference-definitions) identified by a `label` (*link label*) and having a `url` (*link destination*) and an optional `title` (*link title*).
 
-This convenience allows for the use of a set of references across multiple documents.
+It is also important to note that the [link label](https://spec.commonmark.org/0.31.2/#link-label) must be of *normalized form*, or it will never be matched by a reference link.  
+
+> "Normalized form" is effectively lowercasing the text, trimming leading and trailing whitespace, and replacing consecutive internal whitespace characters with a single space.
+
+This convenience allows for the use of a set of references across multiple documents.  Where a document ref label collides with a global one, the document ref wins.
 
 
 ### `vars`
