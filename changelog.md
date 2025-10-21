@@ -17,6 +17,7 @@
 ### v0.1.4
 
 - global link refs do not overwrite document link refs
+- `isref` boolean added to image and link converters for link ref definition derivations
 
 
 ### v0.1.3

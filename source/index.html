@@ -131,6 +131,10 @@
   </main>
   <script>
     var td, to;
+    // make sure links target iframe parent
+    var link = '<a href="{href??}"{? title="{title}"?} target="_parent">{value}</a>';
+    var autolink = '<a href="{url}" target="_parent">{value}</a>';
+
     var panes = [ 'entry', 'style', 'config' ];
 
     var control = document.querySelector('.control');
@@ -183,6 +187,7 @@
         try
         {
             td = takedown();
+            td.config.convert = { autolink, link };
             new Function('config', 'yaml', `'use strict'; ${value}`)(td.config, jsyaml);
             parse(entry.value);
         }

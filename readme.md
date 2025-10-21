@@ -1,5 +1,9 @@
 
-![logo](source/assets/logo-main-med.png)
+<center>
+  <img src="https://captison.github.io/takedown/logo-main.png" alt="Logo" width="80%"/>
+</center>
+
+# Takedown
 
 *A markdown parser that puts you in control.*
 
@@ -329,6 +333,7 @@ htmlblock: '{value}'
     - value: image description
     - href: encoded image URL
     - title: image description
+    - isref: is from a link ref definition?
     - child: child data
 */
 image: e =>
@@ -360,6 +365,7 @@ linebreak: '<br />'
     - value: link text
     - href: encoded link URL
     - title: link description
+    - isref: is from a link ref definition?
     - child: child data
 */
 link: '<a href="{href??}"{? title="{title}"?}>{value}</a>'

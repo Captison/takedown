@@ -38,6 +38,7 @@ export default
 
         if (ref)
         {
+            state.isref = true;
             state.url = ref.url;
             state.title = ref.title;    
             return true;
@@ -170,9 +171,10 @@ export default
 
     compile(content, state)
     {
-        let { name, url, title } = state, data = { chunks: content };
+        let { name, isref, url, title } = state, data = { chunks: content };
 
         data.name = name;
+        data.isref = !!isref;
         // unescape and remove enclosures
         if (url) data.href = url.replace(state.urlTrimRe, '$1');
         if (title) data.title = title.replace(state.titleTrimRe, '$1');
