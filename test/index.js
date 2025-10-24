@@ -11,7 +11,7 @@ import runner from './run-cases.js'
 //     let parentId = parent ? id(parent) : '';
 //     let chunkId = chunk && `${index}:${chunk.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⤇')}`;
     
-//     console.log('๏', spc(parentId, 21), '๏', spc(entityId, 21), '๏', spc(action, 8), '๏', chunkId);
+//     console.log('๏', spc(parentId, 30), '๏', spc(entityId, 30), '๏', spc(action, 8), '๏', chunkId);
 // }
 
 let td = takedown();

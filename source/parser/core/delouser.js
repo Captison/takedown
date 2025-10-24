@@ -1,27 +1,30 @@
+import is from '#lib/is.js'
 import re from '#lib/re.js'
 
 
-export default function (config, inter)
+export default function (config)
 {
     /*
         Makes a replacer function.
     */
     let makeRepFn = spec =>
     {
-        let { search, replace } = spec;
-        // create regex from search spec
-        let regex = re(search);
-        // create an interpolation function from replace spec
-        let repfun = inter.toFunc(replace);
-        // create the final replacer function
-        let replacer = (match, ...a) => 
+        let { search, replace } = spec, replacer = replace;
+        
+        if (is.func(replace))
         {
-            let last = a.pop();
-            // named capture groups are part of data interpolation payload
-            return repfun({ match, ...(typeof last === 'object' ? last : {}) });
+            replacer = (match, ...caps) => 
+            {
+                let string = caps.pop(), offset = caps.pop(), groups = {};
+                
+                if (is.nonao(string))
+                    ([ groups, string, offset ] = [ string, offset, caps.pop() ])
+
+                return replace({ match, caps, string, offset, ...groups });
+            }
         }
 
-        return str => str.replace(regex, replacer);
+        return str => str.replace(re(search), replacer);
     }
 
     let makeReps = (name, list = []) =>
@@ -39,9 +42,9 @@ export default function (config, inter)
     let cache = {};
     let reducer = (str, name) => (cache[name] ??= makeReps(name)).reduce((str, fn) => fn(str), str)
 
-    return data =>
+    return (data, spec) =>
     {
-        let { name, ...obj } = { ...data }, spec = config.delouse[name];
+        let obj = { ...data };
 
         if (spec)
         {
@@ -50,6 +53,6 @@ export default function (config, inter)
             Object.keys(obj).forEach(k => Array.isArray(spec[k]) && (obj[k] = spec[k].reduce(reducer, obj[k])));
         }
 
-        return { name, ...obj };
+        return obj;
     }
 }

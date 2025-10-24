@@ -32,7 +32,8 @@
     },
     "imports":
     {
-        "#lib/*": "./source/lib/*"
+        "#lib/*": "./source/lib/*",
+        "#source/*": "./source/*"
     },
     "exports": 
     {

@@ -3,6 +3,7 @@
   <img src="https://captison.github.io/takedown/logo-main.png" alt="Logo" width="80%"/>
 </center>
 
+
 # Takedown
 
 *A markdown parser that puts you in control.*
@@ -10,6 +11,7 @@
 The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure without going through an AST.
 
 **[Try it out!](https://captison.github.io/takedown/)**
+
 
 ## How do I use this?
 
@@ -179,7 +181,7 @@ When not `fm.enabled`, `matter` is `undefined` and `source` is returned as-is.
 
 ### `convert`
 
-Strings and/or functions that specify how markdown entities are converted to document structure. 
+Strings or functions that specify how markdown entities are converted to document structure. 
 
 A string will be interpolated using insertion variables (as per *What is \"string conversion\"?* section below).
 
@@ -187,7 +189,7 @@ A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
 - `vars` are the configured variables (see `vars` config option)
 
-Strings returned from converter functions will also be interpolated.
+The string returned from a function can also be interpolated with insertion variables.
 
 Here are the converters with default values and their insertion variables:
 
@@ -212,7 +214,7 @@ autolink: '<a href="{url}">{value}</a>'
     Code span (inline).
     
     - value: code text
-    - ticks: opening ticks
+    - chars: opening ticks
 */
 code: '<code>{value}</code>'
 ```
@@ -236,7 +238,7 @@ codeblock: '<pre><code>{value}</code></pre>\n'
 /*
     Thematic break (block).
 
-    - marks: symbols used for break
+    - chars: symbols used for break
 */
 divide: '<hr />\n',
 ```
@@ -522,6 +524,49 @@ Some additional variables are also available for every converter.
 
 The values of `parent` and `index` will be undefined for the `root` converter.
 
+
+### `entities`
+
+Elements that parse individual markdown entities.
+
+Each entity can look like
+
+```js
+entities:
+{
+    [name]:
+    {
+        // converter name
+        name: string,
+        // names of entities that can be children
+        nestable: [ ... string ],
+        // segment matching order
+        order: number,
+        // parent/child contested segment priority
+        priority: number,
+        // name of the parsing pattern to use
+        pattern: string,
+        // configuration for the pattern
+        patternData: { ... any },
+        // delouse settings
+        delouse: 
+        { 
+            // names of delousers to use for `output`
+            [output]: [ ... string ],
+            ... 
+        }
+    },
+    ...
+}
+```
+
+With the exception of `pattern`, all of the individual entity settings are optional.  An unset `name` will default to the entity name, and an unset `order` or `priority` defaults the value to making the entity be amongst the last considered.
+
+The default settings here mostly correlate with the converters, but see the [entities page](docs/entities.md) and the [delousing doc](docs/delousers.md) for additional details.
+
+> This area is not well documented yet, and much of it is highly subject to change.  It is advised to directly consult the source code if you plan on modifying entities.  The eventual idea here is to allow for custom entities to be implemented, but there is yet significant work ahead for this.
+
+
 ### `fm`
 
 Settings for handling markdown front-matter.
@@ -676,16 +721,10 @@ To run tests, do
 
 The test runner will download the [test-cases](https://spec.commonmark.org/0.31.2/spec.json) so an internet connection will be necessary.
 
-### Undocumented Stuff
-
-Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
-
-There are many config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
-
 
 ## Final Notes
 
-Originally, Takedown was built to accomodate **ACID** (A Component Interface Documenter - nearing release!) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
+Although Takedown is a fully standalone markdown parser, it was originally built to accomodate [**ACID**](https://capmeth.github.io/acid), and its feature set is primarily driven by the same.  As it matures, of course, it should be a great markdown parsing dependency for any application.
 
 As an acknowledgement, this project was initially inspired by [this article](https://medium.com/better-programming/create-your-own-markdown-parser-bffb392a06db) during the search for the markdown parser of my dreams. :smile:
 
