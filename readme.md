@@ -562,7 +562,7 @@ entities:
 
 With the exception of `pattern`, all of the individual entity settings are optional.  An unset `name` will default to the entity name, and an unset `order` or `priority` defaults the value to making the entity be amongst the last considered.
 
-The default settings here mostly correlate with the converters, but see the [entities page](docs/entities.md) and the [delousing doc](docs/delousers.md) for additional details.
+The default settings here mostly correlate with the converters, but see the [entities page](https://github.com/Captison/takedown/blob/master/docs/entities.md) and the [delousing doc](https://github.com/Captison/takedown/blob/master/docs/delousers.md) for additional details.
 
 > This area is not well documented yet, and much of it is highly subject to change.  It is advised to directly consult the source code if you plan on modifying entities.  The eventual idea here is to allow for custom entities to be implemented, but there is yet significant work ahead for this.
 

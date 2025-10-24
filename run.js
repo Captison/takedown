@@ -12,22 +12,22 @@ target ??= path.join(path.dirname(source), name) + '.html';
 
 fs.readFile(source, { encoding: 'utf8' }).then(markdown => 
 {
-    let td = takedown();
+    let td = takedown({ convert: { root: e => (e.title = name, html) } });
+    
+    let { doc } = td.parse(markdown);
 
-    td.config.convert.root = 
-    `
-      <html>
-      <head>
-        <title>${name}</title>
-      </head>
-      <body>
-        {value}
-      </body>
-      </html>
-    `;
-
-    let result = td.parse(markdown);
-
-    fs.writeFile(target, result, { encoding: 'utf8' })
+    fs.writeFile(target, doc, { encoding: 'utf8' })
       .then(() => console.log(source, '=>', target));
 });
+
+let html =
+`
+<html>
+<head>
+  <title>{title}</title>
+</head>
+<body>
+  {value}
+</body>
+</html>
+`;

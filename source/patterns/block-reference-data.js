@@ -18,7 +18,7 @@ let trimUrlRe = /^<(.*?)>$/;
       Based on CommonMark *link reference definitions*.
       <https://spec.commonmark.org/0.31.2/#link-reference-definitions>
 */
-export default function ({  })
+export default function ()
 {
     let open = [ `${s.mi}${label}${s.swole}(?=[^\\s])${url}${s.swole}(?:(?<=\\s)${title})?${s.sot}*${s.eol}`, 'ys' ];
     let test = `${s.mi}\\[`;    
