@@ -1,11 +1,17 @@
 
-![logo](source/assets/logo-main-med.png)
+<center>
+  <img src="https://captison.github.io/takedown/logo-main.png" alt="Logo" width="80%"/>
+</center>
+
+
+# Takedown
 
 *A markdown parser that puts you in control.*
 
 The goal of this project is to have a compliant markdown parser that also allows for full control of the target document structure without going through an AST.
 
 **[Try it out!](https://captison.github.io/takedown/)**
+
 
 ## How do I use this?
 
@@ -109,6 +115,7 @@ The returned object will have
 Metadata (`meta`) will include:
 - `id`: unique timestamp-based hex value for the document
 - `refs`: link reference data parsed from the document
+- `globalRefs`: link reference data set as `refs` config option
 
 > Note that `source` might be slightly different than the original `markdown` provided due to the removal of insecure characters (U+0000) and the replacement of structural tab characters with spaces.
 
@@ -174,7 +181,7 @@ When not `fm.enabled`, `matter` is `undefined` and `source` is returned as-is.
 
 ### `convert`
 
-Strings and/or functions that specify how markdown entities are converted to document structure. 
+Strings or functions that specify how markdown entities are converted to document structure. 
 
 A string will be interpolated using insertion variables (as per *What is \"string conversion\"?* section below).
 
@@ -182,180 +189,302 @@ A function should be of the form `(data: object, vars: object): string` where
 - `data` contains converter insertion variables, and
 - `vars` are the configured variables (see `vars` config option)
 
-Strings returned from converter functions will also be interpolated.
+The string returned from a function can also be interpolated with insertion variables.
 
-Here are the defaults with insertion variable names explained:
+Here are the converters with default values and their insertion variables:
+
+
+#### autolink
 
 ```js
-convert:
+/*
+    Automatic hyperlink (inline).
+
+    - value: display URL
+    - url: encoded URL
+*/
+autolink: '<a href="{url}">{value}</a>'
+```
+
+
+#### code
+
+```js
+/*
+    Code span (inline).
+    
+    - value: code text
+    - chars: opening ticks
+*/
+code: '<code>{value}</code>'
+```
+
+
+#### codeblock
+
+```js
+/*
+    Indented code block (block).
+
+    - value: code block source
+*/
+codeblock: '<pre><code>{value}</code></pre>\n'
+```
+
+
+#### divide
+
+```js
+/*
+    Thematic break (block).
+
+    - chars: symbols used for break
+*/
+divide: '<hr />\n',
+```
+
+
+#### email
+
+```js
+/*
+    Email address (inline).
+
+    - value: email address
+    - email: email address
+*/
+email: '<a href="mailto:{email}">{value}</a>',
+```
+
+
+#### emphasis
+
+```js
+/*
+    Emphasis (inline).
+
+    - value: emphasis text
+    - child: child data
+*/
+emphasis: '<em>{value}</em>'
+```
+
+
+#### fenceblock
+
+```js
+/*
+    Fenced code block (block).
+
+    - value: source content
+    - info: info-string
+    - fence: opening ticks
+*/
+fenceblock: e =>
 {
-    /*
-        Automatic hyperlink (inline).
-
-        value - display URL
-        url - encoded URL
-    */
-    autolink: '<a href="{url}">{value}</a>',
-    /*
-        Code span (inline).
-
-        value - inline code text
-        ticks - opening ticks
-    */
-    code: '<code>{value}</code>',
-    /*
-        Indented code block (block).
-
-        value - code block source
-    */
-    codeblock: '<pre><code>{value}</code></pre>\n',
-    /*
-        Thematic break (block).
-
-        marks - symbols used for break
-    */
-    divide: '<hr />\n',
-    /*
-        Email address (inline).
-
-        value - email address
-        email - email address
-    */
-    email: '<a href="mailto:{email}">{value}</a>',
-    /*
-        Emphasis (inline).
-
-        value - emphasis text
-        child - child data
-    */
-    emphasis: '<em>{value}</em>',
-    /*
-        Fenced code block (block).
-
-        value - fence block source
-        info - fence block info-string
-        fence - opening ticks
-    */
-    fenceblock: e =>
-    {
-        e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
-        return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
-    },
-    /*
-        ATX Header (block).
-
-        value - header tag content
-        level - header level (1-6)
-        child - child data
-    */
-    header: '<h{level}>{value}</h{level}>\n',
-    /*
-        HTML (inline).
-
-        value - inline html content
-    */
-    html: '{value}',
-    /*
-        HTML block (block).
-
-        value - block html content
-    */
-    htmlblock: '{value}',
-    /*
-        Image (inline).
-
-        value - image description
-        href - encoded image URL
-        title - image description
-        child - child data
-    */
-    image: e =>
-    {
-        e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
-        return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
-    },
-    /*
-        Hard line break (inline).
-
-        nada.
-    */
-    linebreak: '<br />',
-    /*
-        Hyperlink (inline).
-
-        value - link text
-        href - encoded link URL
-        title - link description
-        child - child data
-    */
-    link: '<a href="{href??}"{? title="{title}"?}>{value}</a>',
-    /*
-        List item (block).
-
-        value - list item content
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    listitem: e =>
-    {
-        e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
-        return '<li>{nl}{value}</li>\n';
-    },
-    /*
-        Ordered list (block).
-
-        value - list content
-        start - starting index
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`,
-    /*
-        Paragraph (block).
-
-        value - paragraph content
-        child - child data
-    */
-    paragraph: ({ parent: p, index }) => 
-        p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n',
-    /*
-        Blockquote (block).
-
-        value - block quote content
-        child - child data
-    */
-    quotation: '<blockquote>\n{value}</blockquote>\n',
-    /*
-        Document root (block).
-
-        value - entire document output
-        child - child data
-    */
-    root: '{value}',
-    /*
-        Setext Header (block).
-
-        value - setext header tag content
-        level - setext header level (1-2)
-        child - child data
-    */
-    setext: '<h{level}>{value}</h{level}>\n',
-    /*
-        Strong emphasis (inline).
-
-        value - strong emphasis text
-        child - child data
-    */
-    strong: '<strong>{value}</strong>',
-    /*
-        Unordered list (block).
-
-        value - list content
-        tight - should paragraphs be suppressed?
-        child - child data
-    */
-    ulist: '<ul>\n{value}</ul>\n'
+    e.lang = e.info?.match(/^\s*([^\s]+).*$/s)?.[1];
+    return '<pre><code{? class="language-{lang}"?}>{value}</code></pre>\n'
 }
+```
+
+
+#### header
+
+```js
+/*
+    ATX Header (block).
+
+    - value: text content
+    - level: header level (1-6)
+    - child: child data
+*/
+header: '<h{level}>{value}</h{level}>\n'
+```
+
+
+#### html
+
+```js
+/*
+    HTML markup (inline).
+
+    - value: html content
+*/
+html: '{value}'
+```
+
+
+#### htmlblock
+
+```js
+/*
+    HTML markup (block).
+
+    - value: html content
+*/
+htmlblock: '{value}'
+```
+
+
+#### image
+
+```js
+/*
+    Image (inline).
+
+    - value: image description
+    - href: encoded image URL
+    - title: image description
+    - isref: is from a link ref definition?
+    - child: child data
+*/
+image: e =>
+{
+    e.alt = e.value.replace(/<[^>]+?(?:alt="(.*?)"[^>]+?>|>)/ig, '$1');
+    return `<img src="{href}" alt="{alt}"{? title="{title}"?} />`;
+}
+```
+
+
+#### linebreak
+
+```js
+/*
+    Hard line break (inline).
+
+    nada.
+*/
+linebreak: '<br />'
+```
+
+
+#### link
+
+```js
+/*
+    Hyperlink (inline).
+
+    - value: link text
+    - href: encoded link URL
+    - title: link description
+    - isref: is from a link ref definition?
+    - child: child data
+*/
+link: '<a href="{href??}"{? title="{title}"?}>{value}</a>'
+```
+
+
+#### listitem
+
+```js
+/*
+    List item (block).
+
+    - value: list item content
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+listitem: e =>
+{
+    e.nl = e.child.count && (!e.tight || e.child.first !== 'paragraph') ? '\n' : '';
+    return '<li>{nl}{value}</li>\n';
+}
+```
+
+
+#### olist
+
+```js
+/*
+    Ordered list (block).
+
+    - value: list content
+    - start: starting index
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+olist: e => `<ol${e.start !== 1 ? ` start="${e.start}"` : ''}>\n{value}</ol>\n`
+```
+
+
+#### paragraph
+
+```js
+/*
+    Paragraph (block).
+
+    - value: paragraph content
+    - child: child data
+*/
+paragraph: ({ parent: p, index }) => 
+    p.tight ? '{value}' + (p.child.count - 1 === index ? '' : '\n') : '<p>{value}</p>\n'
+```
+
+
+#### quotation
+
+```js
+/*
+    Blockquote (block).
+
+    - value: text content
+    - child: child data
+*/
+quotation: '<blockquote>\n{value}</blockquote>\n'
+```
+
+
+#### root
+
+```js
+/*
+    Document root (block).
+
+    - value: entire document output
+    - child: child data
+*/
+root: '{value}'
+```
+
+
+#### setext
+
+```js
+/*
+    Setext Header (block).
+
+    - value: setext header tag content
+    - level: setext header level (1-2)
+    - child: child data
+*/
+setext: '<h{level}>{value}</h{level}>\n'
+```
+
+
+#### strong
+
+```js
+/*
+    Strong emphasis (inline).
+
+    - value: text content
+    - child: child data
+*/
+strong: '<strong>{value}</strong>'
+```
+
+
+#### ulist
+
+```js
+/*
+    Unordered list (block).
+
+    - value: list content
+    - tight: suppress paragraphs?
+    - child: child data
+*/
+ulist: '<ul>\n{value}</ul>\n'
 ```
 
 **All** of the target document structure is defined in the `convert` settings.
@@ -394,6 +523,49 @@ Some additional variables are also available for every converter.
 - `index`: 0-based position in the parent converter
 
 The values of `parent` and `index` will be undefined for the `root` converter.
+
+
+### `entities`
+
+Elements that parse individual markdown entities.
+
+Each entity can look like
+
+```js
+entities:
+{
+    [name]:
+    {
+        // converter name
+        name: string,
+        // names of entities that can be children
+        nestable: [ ... string ],
+        // segment matching order
+        order: number,
+        // parent/child contested segment priority
+        priority: number,
+        // name of the parsing pattern to use
+        pattern: string,
+        // configuration for the pattern
+        patternData: { ... any },
+        // delouse settings
+        delouse: 
+        { 
+            // names of delousers to use for `output`
+            [output]: [ ... string ],
+            ... 
+        }
+    },
+    ...
+}
+```
+
+With the exception of `pattern`, all of the individual entity settings are optional.  An unset `name` will default to the entity name, and an unset `order` or `priority` defaults the value to making the entity be amongst the last considered.
+
+The default settings here mostly correlate with the converters, but see the [entities page](https://github.com/Captison/takedown/blob/master/docs/entities.md) and the [delousing doc](https://github.com/Captison/takedown/blob/master/docs/delousers.md) for additional details.
+
+> This area is not well documented yet, and much of it is highly subject to change.  It is advised to directly consult the source code if you plan on modifying entities.  The eventual idea here is to allow for custom entities to be implemented, but there is yet significant work ahead for this.
+
 
 ### `fm`
 
@@ -436,7 +608,7 @@ Here's a rundown of the individual `fm` settings:
 
 ### `refs`
 
-Pre-loaded link references.
+Global link reference definitions.
 
 This setting takes the following form:
 
@@ -452,9 +624,13 @@ refs:
 }
 ```
 
-Each entry in `refs` is a markdown [link reference](https://spec.commonmark.org/0.31.2/#link-reference-definitions) identified by a `label` (*link label*) and having a `title` (*link title*) and a `url` (*link destination*).
+Each entry in `refs` is a markdown [link reference definition](https://spec.commonmark.org/0.31.2/#link-reference-definitions) identified by a `label` (*link label*) and having a `url` (*link destination*) and an optional `title` (*link title*).
 
-This convenience allows for the use of a set of references across multiple documents.
+It is also important to note that the [link label](https://spec.commonmark.org/0.31.2/#link-label) must be of *normalized form*, or it will never be matched by a reference link.  
+
+> "Normalized form" is effectively lowercasing the text, trimming leading and trailing whitespace, and replacing consecutive internal whitespace characters with a single space.
+
+This convenience allows for the use of a set of references across multiple documents.  Where a document ref label collides with a global one, the document ref wins.
 
 
 ### `vars`
@@ -545,16 +721,10 @@ To run tests, do
 
 The test runner will download the [test-cases](https://spec.commonmark.org/0.31.2/spec.json) so an internet connection will be necessary.
 
-### Undocumented Stuff
-
-Much of Takedown runs off of config settings as it is intended to operate as declaratively as possible.  
-
-There are many config options not documented here, but please note that those and any other undocumented behavior/feature/bug is subject to breaking change at **any** [semver](https://semver.org) level.
-
 
 ## Final Notes
 
-Originally, Takedown was built to accomodate **ACID** (A Component Interface Documenter - nearing release!) as I was unable to find a parser that fully satisfied its HTML generation needs.  As such, this tool is limited in some respects but should, with some time, become a great markdown parsing dependency for any application.
+Although Takedown is a fully standalone markdown parser, it was originally built to accomodate [**ACID**](https://capmeth.github.io/acid), and its feature set is primarily driven by the same.  As it matures, of course, it should be a great markdown parsing dependency for any application.
 
 As an acknowledgement, this project was initially inspired by [this article](https://medium.com/better-programming/create-your-own-markdown-parser-bffb392a06db) during the search for the markdown parser of my dreams. :smile:
 

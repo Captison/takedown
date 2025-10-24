@@ -14,6 +14,25 @@
 
 
 ---
+### v0.1.4
+
+- refactor of internal entities to extract patterns
+- move entities to config file
+- global link refs do not overwrite document link refs
+- `isref` boolean added to image and link converters for link ref definition derivations
+
+
+### v0.1.3
+
+- bug fix for `vars` config option
+
+
+### v0.1.2
+
+- added global reference links
+- test page added to github pages
+
+
 ### v0.1.1
 
 - github action to build and produce bundled artifacts

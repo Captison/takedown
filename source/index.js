@@ -1,7 +1,9 @@
+import './patch.js'
+
 import confine from '#lib/confine/index.js'
 import defaults from './config/defaults.js'
 import definition from './config/definition.js'
-import parser from './parser/core/index.js'
+import parser from './parser/index.js'
 import fmParser from './parse-fm.js'
 
 
