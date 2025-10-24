@@ -4,7 +4,7 @@ import delouser from './delouser.js'
 
 export default function (config, inter)
 {
-    let delouse = delouser(config, inter);
+    let delice = delouser(config);
     
     let cache = {};
 
@@ -12,9 +12,9 @@ export default function (config, inter)
     {
         let finalize = (model, parent, index) => 
         {
-            let { chunks, ...rest } = compile(model);            
-            let data = { id: model.id, parent, index, meta, ...delouse(rest) };
+            let { id, name, delouse } = model, { chunks, ...rest } = compile(model);
 
+            let data = { id, name, parent, index, meta, ...delice(rest, delouse) };
             // we need to finalize chunks if provided
             if (((data.value ?? null) === null) && (chunks || chunks === '')) 
             {
@@ -30,7 +30,7 @@ export default function (config, inter)
                 list.forEach((chunk, index) => 
                 {
                     let render = chunk.agent ? finalize(chunk, { ...data }, index) : 
-                        delouse({ name: data.name, value: chunk }).value;
+                        delice({ value: chunk }, delouse).value;
                         
                     if (render) array.push(render);
                 });

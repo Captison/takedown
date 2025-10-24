@@ -16,6 +16,8 @@
 ---
 ### v0.1.4
 
+- refactor of internal entities to extract patterns
+- move entities to config file
 - global link refs do not overwrite document link refs
 - `isref` boolean added to image and link converters for link ref definition derivations
 

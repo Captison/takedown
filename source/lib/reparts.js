@@ -20,11 +20,13 @@ let s =
     // decimal html entities
     get dhe() { return `${s.ne}&#([0-9]{1,7});`; },
     // #delimiter-run (w/o escaping rule)
-    get dr() { return `(?<dr>.)\\k<dr>*` },
+    get dr() { return `(?<dr>.)\\k<dr>*`; },
+    // domain-segment
+    get ds() { return `[${s.anr}-]{0,61}[${s.anr}]`; },
     // #email-address
-    get ea() { return `[${s.anr}.!#$%&'*+\\/=?^_\`{|}~-]+@[${s.anr}](?:[${s.anr}-]{0,61}[${s.anr}])?(?:\\.[${s.anr}](?:[${s.anr}-]{0,61}[${s.anr}])?)*`; },
+    get ea() { return `[${s.anr}.!#$%&'*+\\/=?^_\`{|}~-]+@[${s.anr}](?:${s.ds})?(?:\\.[${s.anr}](?:${s.ds})?)*`; },
     // end-of-line
-    get eol() { return `(?:[${s.le}]|$)` },
+    get eol() { return `(?:[${s.le}]|$)`; },
     // #hard-line-breaks
     get hlb() { return '(?:  +|\\\\)\\n'; },
     // html #attribute-name
@@ -55,13 +57,10 @@ let s =
     get nbl() { return '(?<=^|\\n).*\\S.*(?=\\n|$)'; },
     // not escaped (eliminates `\` pairs)
     get ne() { return '(?<=(?<!\\\\)(?:\\\\\\\\)*)'; },
-    get nesc() { return s.ne; },
     // named html entities
     get nhe() { return `${s.ne}&[a-z0-9]+?;`; },
     // opening atx header
     get oah() { return '#{1,6}'; },
-    // opening fence block
-    get ofb() { return `\`{3,}(?=[^\`]*${s.eol})|~{3,}`; },
     // opening list item
     get oli() { return '(?:[-+*]|(?:[a-z]{0,9}|[A-Z]{0,9}|[0-9]{0,9})[.)])(?=\\s)'; },
     // opening quote block
@@ -72,7 +71,7 @@ let s =
     get sol() { return `(?:^|(?<=\\n))${s.mi}` },
     // space or tab
     get sot() { return '[\\u0020\\u0009]'; },
-    // space with one (up to) line ending
+    // space with (up to) one line ending
     get swole() { return `${s.sot}*[${s.le}]?${s.sot}*`; },
     // #unicode-punctuation-character
     get upc() { return '\\p{P}|\\p{S}' },
